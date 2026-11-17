@@ -240,7 +240,7 @@
         <div class="event-sub">■ MAIN EVENT · 5 ROUNDS · LOCK-ON VIEW</div>
         <div class="event-vs" id="lobby-vs-title">찰스 올리베이라 VS 하빕 누르마고메도프</div>
         <div class="event-desc">
-          시선 고정 및 궁극기(<b>R</b>) 연출이 완벽히 수정되었습니다. <b>R</b>키를 눌러 장착된 화려한 시그니처 필살기를 작렬하세요!
+          시선 락온 고정 및 실제 UFC 고증 궁극기(<b>R</b>) 모션이 완전히 강화되었습니다. <b>R</b>키를 눌러 화려한 피니시 기술을 작렬하세요!
         </div>
         <button class="btn-primary" onclick="startBattle()">옥타곤 경기 시작 (FIGHT)</button>
         <button class="btn-secondary" onclick="openTab('tab-gym', document.querySelectorAll('.nav-tab')[1])">체육관 훈련</button>
@@ -397,9 +397,9 @@ const DEFAULT_STATE = {
   ownedSkills: { onetwo: 1 },
   equippedSkill: 'onetwo'
 };
-let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v5') || 'null') || structuredClone(DEFAULT_STATE);
-function saveState() { localStorage.setItem('untitled_mma_3d_v5', JSON.stringify(state)); }
-function resetSave() { localStorage.removeItem('untitled_mma_3d_v5'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
+let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v6') || 'null') || structuredClone(DEFAULT_STATE);
+function saveState() { localStorage.setItem('untitled_mma_3d_v6', JSON.stringify(state)); }
+function resetSave() { localStorage.removeItem('untitled_mma_3d_v6'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
 
 function getPlayerFighter() { return FIGHTERS.find(f => f.id === state.selectedId) || FIGHTERS[0]; }
 function getEffectiveStats(fighterId) {
@@ -831,7 +831,7 @@ function playerAttack(type) {
   if (type === 'wrestling') {
     p1.atkMax = 0.75;
   } else if (type === 'sig') {
-    p1.atkMax = 0.85; // 궁극기 연출 시간 충분히 부여
+    p1.atkMax = 0.85;
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     p1.sigId = sk.id;
   } else {
@@ -868,7 +868,7 @@ function playerAttack(type) {
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     const lv = state.ownedSkills[sk.id] || 1;
     base = st[sk.type] * 0.82 * sk.mult * (1 + (lv - 1) * 0.12);
-    timeScale = 0.35; // 궁극기 임팩트 슬로우모션
+    timeScale = 0.35;
     callout(`★ [${sk.grade}] ${sk.name} 작렬!`, '#eab308');
   }
 
@@ -1000,7 +1000,7 @@ function finishBattle(playerWon) {
   }, 2400);
 }
 
-/* ================= 5. 관절 모션 & 궁극기 연출 렌더러 ================= */
+/* ================= 5. 실제 UFC 고증 궁극기 모션 렌더러 ================= */
 const clock = new THREE.Clock();
 
 function clampOctagon(ent) {
@@ -1047,7 +1047,6 @@ function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
     mesh.rightArm.elbow.rotation.set(-1.75, 0, 0);
   }
 
-  // 공격 및 궁극기 모션 트리거
   if (f.atkTimer > 0) {
     const prog = 1 - (f.atkTimer / f.atkMax);
     const swing = Math.sin(prog * Math.PI);
@@ -1073,32 +1072,38 @@ function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
       mesh.bodyPivot.position.y = 1.02 - 0.4 * p1;
       mesh.bodyPivot.rotation.x = 0.75 * p1;
     } else if (f.atkType === 'sig') {
-      // ★ 궁극기(시그니처 기술)별 고유 아크로바틱 3D 모션 연출!
+      // ★ 장착된 궁극기별 실제 UFC 고증 피니시 모션 연출!
       const sid = f.sigId;
       if (sid === 'showtime' || sid === 'flying_knee') {
-        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.4;
-        mesh.bodyPivot.rotation.x = -0.5 * swing;
-        mesh.bodyPivot.rotation.z = (sid === 'showtime' ? 0.75 : 0) * swing;
-        mesh.rightLeg.hip.rotation.set(-2.2 * swing, 0, 0);
-        mesh.rightLeg.knee.rotation.x = (sid === 'flying_knee' ? 1.9 : 0.2) * swing;
+        // 케이지 반동 쇼타임 킥 / 플라잉 니킥 (공중 도약 타격)
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.5;
+        mesh.bodyPivot.rotation.x = -0.55 * swing;
+        mesh.bodyPivot.rotation.z = (sid === 'showtime' ? 0.85 : 0) * swing;
+        mesh.rightLeg.hip.rotation.set(-2.3 * swing, 0, 0);
+        mesh.rightLeg.knee.rotation.x = (sid === 'flying_knee' ? 1.95 : 0.2) * swing;
       } else if (sid === 'wheel_kick' || sid === 'brazilian_kick') {
-        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.6;
-        mesh.bodyPivot.rotation.y = prog * Math.PI * 2; // 화려한 360도 회전 킥
-        mesh.bodyPivot.rotation.z = 0.6 * swing;
-        mesh.rightLeg.hip.rotation.set(-2.1 * swing, 0, 0.4 * swing);
-      } else if (sid === 'flying_armbar' || sid === 'imanari' || sid === 'darce') {
-        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.1;
-        mesh.root.rotation.x = prog * Math.PI * 2; // 공중 전방 회전 다이빙
-        mesh.leftArm.shoulder.rotation.set(-1.8, 0.4, 0);
-        mesh.rightArm.shoulder.rotation.set(-1.8, -0.4, 0);
-      } else if (sid === 'suplex' || sid === 'double_leg') {
-        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.9;
-        mesh.bodyPivot.rotation.x = -1.35 * Math.sin(prog * Math.PI);
-      } else {
-        // 스피닝 백피스트 & 오버핸드 연타 콤보
+        // 360도 스피닝 휠킥 & 브라질리언 하이킥 (상체 회전 후 내리찍기)
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.65;
         mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
-        mesh.leftArm.shoulder.rotation.set(-1.7 * swing, 0, 0);
-        mesh.rightArm.shoulder.rotation.set(-1.7 * swing, 0, 0);
+        mesh.bodyPivot.rotation.z = 0.7 * swing;
+        mesh.rightLeg.hip.rotation.set(-2.2 * swing, 0, 0.45 * swing);
+      } else if (sid === 'flying_armbar' || sid === 'imanari' || sid === 'darce') {
+        // 플라잉 암바 / 이마나리 롤 (공중에서 상대를 덮치며 관절 꺾기 다이빙)
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.2;
+        mesh.root.rotation.x = prog * Math.PI * 2;
+        mesh.leftArm.shoulder.rotation.set(-1.9, 0.45, 0);
+        mesh.rightArm.shoulder.rotation.set(-1.9, -0.45, 0);
+      } else if (sid === 'suplex' || sid === 'double_leg') {
+        // 하이 앰플리튜드 수플렉스 (상대를 완전히 공중으로 뒤로 메어 꽂는 아치 슬램)
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.1;
+        mesh.bodyPivot.rotation.x = -1.55 * Math.sin(prog * Math.PI);
+        mesh.leftArm.shoulder.rotation.set(-2.0, 0, 0);
+        mesh.rightArm.shoulder.rotation.set(-2.0, 0, 0);
+      } else {
+        // 스피닝 백피스트 & 원투 오버핸드 연타 콤보
+        mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
+        mesh.leftArm.shoulder.rotation.set(-1.8 * swing, 0, 0);
+        mesh.rightArm.shoulder.rotation.set(-1.8 * swing, 0, 0);
       }
     }
   }
@@ -1179,7 +1184,7 @@ function animate() {
     clampOctagon(p1);
     clampOctagon(p2);
 
-    // ★ 회전 버그 원천 차단: lookAt으로 상대방 좌표를 정확히 주시하도록 고정
+    // ★ 락온 및 회전 고정: 상대방을 항상 정면으로 주시하도록 lookAt 적용
     p1Mesh.root.position.set(p1.x, p1.y, p1.z);
     p2Mesh.root.position.set(p2.x, p2.y, p2.z);
     p1Mesh.root.lookAt(p2.x, p1.y, p2.z);
