@@ -154,7 +154,6 @@
     opacity: 0; transition: opacity 0.15s; z-index: 28; white-space: nowrap;
   }
 
-  /* 그라운드 제압 판정 및 미니게임 HUD */
   #ground-overlay {
     position: fixed; top: 38%; left: 50%; transform: translate(-50%, -50%);
     width: 320px; background: var(--panel-solid); border: 2px solid var(--gold);
@@ -241,7 +240,7 @@
         <div class="event-sub">■ MAIN EVENT · 5 ROUNDS · LOCK-ON VIEW</div>
         <div class="event-vs" id="lobby-vs-title">찰스 올리베이라 VS 하빕 누르마고메도프</div>
         <div class="event-desc">
-          시선이 상대에게 완벽히 고정됩니다. <b>L</b>키(테이크다운) 성공 시 치마예프 스타일의 그라운드 제압으로 전환되며, 파운딩 혹은 암바를 선택할 수 있습니다!
+          시선 고정 및 궁극기(<b>R</b>) 연출이 완벽히 수정되었습니다. <b>R</b>키를 눌러 장착된 화려한 시그니처 필살기를 작렬하세요!
         </div>
         <button class="btn-primary" onclick="startBattle()">옥타곤 경기 시작 (FIGHT)</button>
         <button class="btn-secondary" onclick="openTab('tab-gym', document.querySelectorAll('.nav-tab')[1])">체육관 훈련</button>
@@ -315,7 +314,6 @@
 
   <div id="center-callout">FIGHT!</div>
 
-  <!-- 치마예프 스타일 그라운드 제압 & 서브미션 미니게임 패널 -->
   <div id="ground-overlay">
     <div style="font-size:13px; font-weight:900; color:var(--gold);" id="ground-title">GROUND & POUND / SUBMISSION</div>
     <div style="font-size:11px; color:var(--muted); margin-top:4px;" id="ground-desc">상대를 매트에 누르비고 올라탔습니다! 행동을 선택하세요.</div>
@@ -399,9 +397,9 @@ const DEFAULT_STATE = {
   ownedSkills: { onetwo: 1 },
   equippedSkill: 'onetwo'
 };
-let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v4') || 'null') || structuredClone(DEFAULT_STATE);
-function saveState() { localStorage.setItem('untitled_mma_3d_v4', JSON.stringify(state)); }
-function resetSave() { localStorage.removeItem('untitled_mma_3d_v4'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
+let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v5') || 'null') || structuredClone(DEFAULT_STATE);
+function saveState() { localStorage.setItem('untitled_mma_3d_v5', JSON.stringify(state)); }
+function resetSave() { localStorage.removeItem('untitled_mma_3d_v5'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
 
 function getPlayerFighter() { return FIGHTERS.find(f => f.id === state.selectedId) || FIGHTERS[0]; }
 function getEffectiveStats(fighterId) {
@@ -729,7 +727,7 @@ function buildArticulatedFighter(fData, gloveColor) {
   return { root, bodyPivot, headGroup, leftArm, rightArm, leftLeg, rightLeg };
 }
 
-/* ================= 4. 전투 엔진 & 그라운드/암바 시스템 ================= */
+/* ================= 4. 전투 엔진 & 락온 / 궁극기 모션 시스템 ================= */
 let mode = 'LOBBY';
 let p1Mesh = null, p2Mesh = null;
 let p1 = {}, p2 = {};
@@ -739,7 +737,7 @@ let hitStopTimer = 0;
 
 let groundState = {
   active: false,
-  attacker: null, // 'p1' or 'p2'
+  attacker: null,
   subMode: false,
   pos: 0,
   dir: 1,
@@ -833,7 +831,7 @@ function playerAttack(type) {
   if (type === 'wrestling') {
     p1.atkMax = 0.75;
   } else if (type === 'sig') {
-    p1.atkMax = 0.78;
+    p1.atkMax = 0.85; // 궁극기 연출 시간 충분히 부여
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     p1.sigId = sk.id;
   } else {
@@ -842,7 +840,7 @@ function playerAttack(type) {
   p1.atkTimer = p1.atkMax;
 
   const dist = Math.hypot(p2.x - p1.x, p2.z - p1.z);
-  const reach = (type === 'wrestling' || type === 'sig') ? 3.4 : type === 'kick' ? 2.75 : 2.2;
+  const reach = (type === 'wrestling' || type === 'sig') ? 3.6 : type === 'kick' ? 2.75 : 2.2;
 
   const ang = Math.atan2(p2.x - p1.x, p2.z - p1.z);
   if (type === 'wrestling' || type === 'sig') {
@@ -861,7 +859,6 @@ function playerAttack(type) {
   } else if (type === 'kick') {
     base = st.kick * (p1.comboSide === 0 ? 0.68 : 0.80);
   } else if (type === 'wrestling') {
-    // 치마예프 스타일 테이크다운 성공 ➔ 그라운드 제압 돌입!
     triggerGroundControl('p1');
     callout('치마예프 체인 레슬링 테이크다운 성공!', '#eab308');
     return;
@@ -870,9 +867,9 @@ function playerAttack(type) {
   } else if (type === 'sig') {
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     const lv = state.ownedSkills[sk.id] || 1;
-    base = st[sk.type] * 0.78 * sk.mult * (1 + (lv - 1) * 0.12);
-    timeScale = 0.45;
-    callout(`★ ${sk.name}!`, '#eab308');
+    base = st[sk.type] * 0.82 * sk.mult * (1 + (lv - 1) * 0.12);
+    timeScale = 0.35; // 궁극기 임팩트 슬로우모션
+    callout(`★ [${sk.grade}] ${sk.name} 작렬!`, '#eab308');
   }
 
   if (p1.counterWindow > 0) {
@@ -883,19 +880,18 @@ function playerAttack(type) {
 
   const finalDmg = Math.round(base * mult);
   p2.hp = Math.max(0, p2.hp - finalDmg);
-  hitStopTimer = 0.04;
+  hitStopTimer = type === 'sig' ? 0.08 : 0.04;
 
-  p2.x += Math.sin(ang) * 0.45;
-  p2.z += Math.cos(ang) * 0.45;
+  p2.x += Math.sin(ang) * (type === 'sig' ? 1.2 : 0.45);
+  p2.z += Math.cos(ang) * (type === 'sig' ? 1.2 : 0.45);
 
   if (type === 'bjj' && p2.hp > 0 && Math.random() < 0.65) {
-    triggerGroundControl('p1', true); // 주짓수 정타 시 곧바로 암바 미니게임
+    triggerGroundControl('p1', true);
   }
 
   if (p2.hp <= 0) finishBattle(true);
 }
 
-// 그라운드 제압 상태 진입 (치마예프 스타일)
 function triggerGroundControl(attackerKey, directSub = false) {
   groundState.active = true;
   groundState.attacker = attackerKey;
@@ -934,7 +930,6 @@ function groundAction(act) {
   if (!groundState.active) return;
 
   if (act === 'pound') {
-    // 파운딩 연타로 대미지 누적
     const dmg = 85 + Math.floor(Math.random() * 35);
     p2.hp = Math.max(0, p2.hp - dmg);
     callout(`파운딩 적중! (-${dmg})`, '#eab308');
@@ -943,13 +938,11 @@ function groundAction(act) {
       finishBattle(true);
       return;
     }
-    // 일정 확률로 상대가 탈출하거나 파운딩 속행
     if (Math.random() < 0.4) {
       callout('상대가 발버둥쳐서 스탠딩으로 복귀합니다.', '#9ca3af');
       endGroundControl();
     }
   } else if (act === 'armbar') {
-    // 암바 서브미션 미니게임 모드로 전환
     groundState.subMode = true;
     document.getElementById('ground-btn-group').style.display = 'none';
     document.getElementById('sub-game-wrap').style.display = 'block';
@@ -957,7 +950,6 @@ function groundAction(act) {
     document.getElementById('ground-desc').innerText = '초록색 바 안에 하얀색 바늘이 들어왔을 때 버튼을 누르세요!';
     initSubMinigame();
   } else if (act === 'escape') {
-    // 탈출 성공
     callout('그라운드 공방 탈출 성공!', '#10b981');
     endGroundControl();
   }
@@ -1008,7 +1000,7 @@ function finishBattle(playerWon) {
   }, 2400);
 }
 
-/* ================= 5. 3D 렌더링 & 락온 카메라 고정 ================= */
+/* ================= 5. 관절 모션 & 궁극기 연출 렌더러 ================= */
 const clock = new THREE.Clock();
 
 function clampOctagon(ent) {
@@ -1022,8 +1014,7 @@ function clampOctagon(ent) {
 
 function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
   mesh.root.position.set(f.x, f.y, f.z);
-  mesh.root.rotation.x = 0;
-  mesh.root.rotation.z = 0;
+  mesh.root.rotation.set(0, 0, 0);
   mesh.bodyPivot.position.set(0, 1.02, 0);
   mesh.bodyPivot.rotation.set(0, 0, 0);
 
@@ -1056,19 +1047,18 @@ function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
     mesh.rightArm.elbow.rotation.set(-1.75, 0, 0);
   }
 
+  // 공격 및 궁극기 모션 트리거
   if (f.atkTimer > 0) {
     const prog = 1 - (f.atkTimer / f.atkMax);
     const swing = Math.sin(prog * Math.PI);
 
     if (f.atkType === 'boxing') {
       if (f.comboSide === 0) {
-        mesh.bodyPivot.rotation.y = -0.45 * swing;
-        mesh.leftArm.shoulder.rotation.set(-1.55 * swing - 0.5 * (1 - swing), 0, 0);
-        mesh.leftArm.elbow.rotation.set(-0.15 * swing - 1.2 * (1 - swing), 0, 0);
+        mesh.bodyPivot.rotation.y = -0.35 * swing;
+        mesh.leftArm.shoulder.rotation.set(-1.55 * swing, 0, 0);
       } else {
-        mesh.bodyPivot.rotation.y = 0.58 * swing;
-        mesh.rightArm.shoulder.rotation.set(-1.62 * swing - 0.5 * (1 - swing), 0, 0);
-        mesh.rightArm.elbow.rotation.set(-0.12 * swing - 1.2 * (1 - swing), 0, 0);
+        mesh.bodyPivot.rotation.y = 0.42 * swing;
+        mesh.rightArm.shoulder.rotation.set(-1.62 * swing, 0, 0);
       }
     } else if (f.atkType === 'kick') {
       if (f.comboSide === 0) {
@@ -1079,10 +1069,37 @@ function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
         mesh.rightLeg.hip.rotation.set(-1.85 * swing, 0, 0.35 * swing);
       }
     } else if (f.atkType === 'wrestling') {
-      // 치마예프 테이크다운 돌진 모션
       const p1 = Math.min(1, prog * 1.5);
       mesh.bodyPivot.position.y = 1.02 - 0.4 * p1;
       mesh.bodyPivot.rotation.x = 0.75 * p1;
+    } else if (f.atkType === 'sig') {
+      // ★ 궁극기(시그니처 기술)별 고유 아크로바틱 3D 모션 연출!
+      const sid = f.sigId;
+      if (sid === 'showtime' || sid === 'flying_knee') {
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.4;
+        mesh.bodyPivot.rotation.x = -0.5 * swing;
+        mesh.bodyPivot.rotation.z = (sid === 'showtime' ? 0.75 : 0) * swing;
+        mesh.rightLeg.hip.rotation.set(-2.2 * swing, 0, 0);
+        mesh.rightLeg.knee.rotation.x = (sid === 'flying_knee' ? 1.9 : 0.2) * swing;
+      } else if (sid === 'wheel_kick' || sid === 'brazilian_kick') {
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.6;
+        mesh.bodyPivot.rotation.y = prog * Math.PI * 2; // 화려한 360도 회전 킥
+        mesh.bodyPivot.rotation.z = 0.6 * swing;
+        mesh.rightLeg.hip.rotation.set(-2.1 * swing, 0, 0.4 * swing);
+      } else if (sid === 'flying_armbar' || sid === 'imanari' || sid === 'darce') {
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.1;
+        mesh.root.rotation.x = prog * Math.PI * 2; // 공중 전방 회전 다이빙
+        mesh.leftArm.shoulder.rotation.set(-1.8, 0.4, 0);
+        mesh.rightArm.shoulder.rotation.set(-1.8, -0.4, 0);
+      } else if (sid === 'suplex' || sid === 'double_leg') {
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.9;
+        mesh.bodyPivot.rotation.x = -1.35 * Math.sin(prog * Math.PI);
+      } else {
+        // 스피닝 백피스트 & 오버핸드 연타 콤보
+        mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
+        mesh.leftArm.shoulder.rotation.set(-1.7 * swing, 0, 0);
+        mesh.rightArm.shoulder.rotation.set(-1.7 * swing, 0, 0);
+      }
     }
   }
 }
@@ -1129,7 +1146,6 @@ function animate() {
       if (keys.KeyD) { p1.x += rx * spd; p1.z += rz * spd; p1Moving = true; }
     }
 
-    // AI 공격 로직
     let p2Moving = false;
     p2.aiCd -= dt;
     if (!groundState.active && p2.aiCd <= 0) {
@@ -1163,7 +1179,7 @@ function animate() {
     clampOctagon(p1);
     clampOctagon(p2);
 
-    // ★ 락온 고정: 플레이어와 상대가 서로를 정확히 바라보도록 고정 (빙글빙글 자전 회전 버그 원천 차단)
+    // ★ 회전 버그 원천 차단: lookAt으로 상대방 좌표를 정확히 주시하도록 고정
     p1Mesh.root.position.set(p1.x, p1.y, p1.z);
     p2Mesh.root.position.set(p2.x, p2.y, p2.z);
     p1Mesh.root.lookAt(p2.x, p1.y, p2.z);
@@ -1172,13 +1188,12 @@ function animate() {
     animateFighterRig(p1Mesh, p1, guarding, p1Moving, clock.elapsedTime);
     animateFighterRig(p2Mesh, p2, false, p2Moving, clock.elapsedTime + 1.3);
 
-    // 카메라 락온 시점 (상대방을 정면으로 주시)
+    // 록온 3인칭 어깨 너머 카메라
     const camX = p1.x - fx * 3.6 + rx * 0.4;
     const camZ = p1.z - fz * 3.6 + rz * 0.4;
     camera.position.lerp(new THREE.Vector3(camX, 2.3, camZ), 0.18);
     camera.lookAt(p2.x, 1.2, p2.z);
 
-    // 그라운드 서브미션 미니게임 바늘 이동
     if (groundState.active && groundState.subMode) {
       groundState.pos += groundState.dir * 130 * dt;
       if (groundState.pos >= 98) { groundState.pos = 98; groundState.dir = -1; }
