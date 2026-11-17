@@ -1,428 +1,989 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNTITLED MMA 3D</title>
-    <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0c10; font-family: 'Segoe UI', Roboto, sans-serif; color: #fff; }
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        
-        /* UI 상단 레이어 */
-        #hud-top { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 10; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-        .hud-panel { background: rgba(15, 17, 23, 0.85); border: 1px solid rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; backdrop-filter: blur(4px); pointer-events: auto; }
-        
-        /* 메인 메뉴 및 모달 */
-        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 6, 8, 0.92); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .menu-card { background: #12151c; border: 1px solid #2a3142; border-radius: 12px; width: 100%; max-width: 480px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        h1, h2 { margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; font-weight: 800; color: #f3f4f6; }
-        .btn { width: 100%; padding: 14px; background: #e50914; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        .btn:hover { background: #ff1e27; }
-        .btn-secondary { background: #262c3a; }
-        .btn-secondary:hover { background: #363e52; }
-        
-        /* 탭 메뉴 */
-        .tab-bar { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; background: #1a202c; border: none; color: #a0aec0; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .tab-btn.active { background: #e50914; color: white; }
-        
-        /* 선수 선택 및 체육관 그리드 */
-        .roster-grid, .gym-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 15px; }
-        .roster-item, .gym-item { background: #1a202c; border: 2px solid #2d3748; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 13px; }
-        .roster-item.selected, .gym-item.active { border-color: #e50914; background: #2a1215; }
-        
-        /* 인게임 하단 전투 HUD */
-        #combat-hud { position: absolute; bottom: 20px; left: 20px; right: 20px; z-index: 10; display: none; pointer-events: none; }
-        .fighter-health-box { background: rgba(15,17,23,0.9); border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; width: 45%; display: inline-block; pointer-events: auto; }
-        .health-bar-bg { width: 100%; height: 10px; background: #2d3748; border-radius: 5px; overflow: hidden; margin-top: 5px; }
-        .health-bar-fill { width: 100%; height: 100%; background: #48bb78; transition: width 0.1s; }
-        
-        /* 모바일 터치 컨트롤러 */
-        #touch-controls { position: absolute; bottom: 20px; left: 0; right: 0; height: 160px; z-index: 20; display: none; justify-content: space-between; padding: 0 20px; pointer-events: none; }
-        .control-group { display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
-        .control-row { display: flex; gap: 8px; justify-content: center; }
-        .t-btn { width: 55px; height: 55px; background: rgba(26,32,44,0.85); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; active { background: #e50914; } }
-        .t-btn-action { width: 60px; height: 60px; border-radius: 50%; background: rgba(229,9,20,0.8); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UNTITLED MMA 3D — OCTAGON LIVE</title>
+<style>
+  :root {
+    --bg-dark: #090b0e;
+    --panel: rgba(15, 19, 26, 0.92);
+    --panel-solid: #0f131a;
+    --border: rgba(255, 255, 255, 0.14);
+    --red: #e62343;
+    --blue: #2374e6;
+    --gold: #eab308;
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--bg-dark); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
+  }
+  #game-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
 
-        /* 안내 문구 */
-        #announcement { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 24px; font-weight: 900; color: #ffcc00; text-shadow: 0 2px 10px rgba(0,0,0,0.9); z-index: 25; pointer-events: none; display: none; text-align: center; }
-    </style>
-    <!-- Three.js 라이브러리 로드 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  /* 상단 방송국 스타일 헤더 */
+  .broadcast-top {
+    position: fixed; top: 10px; left: 12px; right: 12px; z-index: 30;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    pointer-events: none;
+  }
+  .broadcast-top > * { pointer-events: auto; }
+  .live-badge {
+    display: flex; align-items: center; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.8px;
+  }
+  .live-tag { background: var(--red); color: #fff; padding: 6px 10px; }
+  .live-title { padding: 6px 12px; color: #e5e7eb; }
+  .wallet-bar {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;
+  }
+  .wallet-item span { color: var(--gold); margin-left: 3px; }
+  .btn-mini {
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    color: var(--muted); font-size: 10px; font-weight: 700;
+    padding: 4px 7px; border-radius: 3px; cursor: pointer;
+  }
+  .btn-mini:hover { color: #fff; border-color: #fff; }
+
+  /* 로비 컨테이너 */
+  #lobby-layer {
+    position: fixed; inset: 0; z-index: 25;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 54px 12px 14px;
+    background: radial-gradient(circle at 50% 35%, rgba(9,11,14,0.35), rgba(9,11,14,0.88));
+  }
+  .lobby-shell {
+    width: 100%; max-width: 560px; max-height: 100%;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.75); backdrop-filter: blur(10px);
+  }
+  .nav-tabs {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.35);
+  }
+  .nav-tab {
+    background: none; border: none; border-bottom: 3px solid transparent;
+    color: var(--muted); padding: 11px 6px; font-size: 12px; font-weight: 800;
+    cursor: pointer; transition: 0.15s;
+  }
+  .nav-tab.active { color: #fff; border-bottom-color: var(--red); background: rgba(230,35,67,0.12); }
+  .tab-panel { padding: 14px; overflow-y: auto; flex: 1; display: none; }
+  .tab-panel.active { display: block; }
+
+  /* 대전 카드 */
+  .match-card {
+    background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px; margin-bottom: 12px;
+  }
+  .corner-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .corner-badge {
+    font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;
+  }
+  .corner-red { background: var(--red); color: #fff; }
+  .corner-blue { background: var(--blue); color: #fff; }
+  .fighter-title { font-size: 16px; font-weight: 800; }
+  .stat-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .chip {
+    font-size: 11px; background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    padding: 3px 7px; border-radius: 4px; color: #d1d5db;
+  }
+  .chip b { color: #fff; }
+
+  .event-banner {
+    background: linear-gradient(135deg, rgba(230,35,67,0.14), rgba(15,19,26,0.9));
+    border: 1px solid rgba(230,35,67,0.35); border-radius: 6px; padding: 14px;
+  }
+  .event-sub { font-size: 10px; font-weight: 800; color: var(--red); letter-spacing: 1px; margin-bottom: 6px; }
+  .event-vs { font-size: 20px; font-weight: 900; line-height: 1.25; margin-bottom: 8px; }
+  .event-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+
+  .btn-primary {
+    width: 100%; padding: 13px; background: var(--red); color: #fff;
+    border: none; border-radius: 6px; font-size: 14px; font-weight: 900;
+    letter-spacing: 0.5px; cursor: pointer; transition: 0.15s;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-secondary {
+    width: 100%; padding: 10px; margin-top: 8px; background: rgba(255,255,255,0.07);
+    color: #fff; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* 체육관 & 로스터 & 뽑기 그리드 */
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .card-box {
+    background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .card-box.selected { border-color: var(--red); background: rgba(230,35,67,0.12); }
+  .grade-badge {
+    display: inline-block; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 3px;
+  }
+  .g-SS { background: linear-gradient(90deg, #f59e0b, #ef4444); color: #fff; }
+  .g-S { background: var(--gold); color: #000; }
+  .g-A { background: var(--cyan); color: #000; }
+  .g-B { background: #4b5563; color: #fff; }
+
+  /* 인게임 전투 HUD */
+  #fight-hud { position: fixed; inset: 0; z-index: 20; display: none; pointer-events: none; }
+  .fighters-hud {
+    position: fixed; top: 48px; left: 12px; right: 12px;
+    display: flex; justify-content: space-between; gap: 10px;
+  }
+  .f-bar-card {
+    flex: 1; max-width: 320px; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 5px; padding: 8px 10px;
+  }
+  .f-bar-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 5px; }
+  .bar-track { width: 100%; height: 9px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
+  .hp-fill { height: 100%; width: 100%; transition: width 0.12s; }
+  .sub-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mini-label { display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; color: var(--muted); margin-bottom: 2px; }
+  .mini-track { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+  .stam-fill { height: 100%; background: var(--gold); width: 100%; }
+  .grd-fill { height: 100%; background: var(--cyan); width: 100%; }
+
+  /* 중앙 알림 배너 & 서브미션 미니게임 */
+  #center-callout {
+    position: fixed; top: 24%; left: 50%; transform: translateX(-50%);
+    font-size: 26px; font-weight: 900; letter-spacing: 1px;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.95); text-align: center;
+    opacity: 0; transition: opacity 0.15s; z-index: 28;
+  }
+  #sub-minigame {
+    position: fixed; top: 42%; left: 50%; transform: translate(-50%, -50%);
+    width: 300px; background: var(--panel-solid); border: 2px solid var(--gold);
+    border-radius: 8px; padding: 14px; text-align: center; display: none; z-index: 35;
+    pointer-events: auto;
+  }
+  .sub-track {
+    position: relative; width: 100%; height: 18px; background: #1f2937;
+    border-radius: 9px; margin: 10px 0; overflow: hidden;
+  }
+  #sub-sweetspot {
+    position: absolute; top: 0; height: 100%; background: rgba(16, 185, 129, 0.55);
+    border-left: 2px solid #10b981; border-right: 2px solid #10b981;
+  }
+  #sub-needle {
+    position: absolute; top: 0; width: 4px; height: 100%; background: #fff;
+  }
+
+  /* 하단 스킬 & 모바일/태블릿 조작패드 */
+  .bottom-controls {
+    position: fixed; bottom: 12px; left: 12px; right: 12px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    pointer-events: none;
+  }
+  .dpad-box, .action-box { pointer-events: auto; display: flex; flex-direction: column; gap: 6px; }
+  .pad-row { display: flex; gap: 6px; justify-content: center; }
+  .pad-btn {
+    width: 48px; height: 48px; border-radius: 8px;
+    background: rgba(15,19,26,0.82); border: 1px solid rgba(255,255,255,0.22);
+    color: #fff; font-size: 11px; font-weight: 800;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; touch-action: manipulation;
+  }
+  .pad-btn:active { background: var(--red); border-color: #fff; }
+  .pad-btn small { font-size: 9px; color: var(--muted); font-weight: 600; }
+  .btn-weave { background: rgba(234,179,8,0.2); border-color: var(--gold); color: var(--gold); width: 102px; }
+  .btn-sig { background: rgba(230,35,67,0.25); border-color: var(--red); width: 102px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <div id="canvas-container"></div>
-    <div id="announcement">FIGHT!</div>
+<canvas id="game-canvas"></canvas>
 
-    <!-- 상단 고정 통화 및 모드 상태 -->
-    <div id="hud-top">
-        <div class="hud-panel">🏆 <b>PURSE</b>: <span id="ui-purse">₩5,000</span></div>
-        <div class="hud-panel">🔥 <b>STREAK</b>: <span id="ui-streak">0W</span></div>
+<!-- 상단 방송국 바 -->
+<div class="broadcast-top">
+  <div class="live-badge">
+    <div class="live-tag">OCTAGON LIVE</div>
+    <div class="live-title">UNTITLED MMA 3D</div>
+  </div>
+  <div class="wallet-bar">
+    <div class="wallet-item">PURSE <span id="purse-val">₩3,000</span></div>
+    <div class="wallet-item">STREAK <span id="streak-val">0W</span></div>
+    <button class="btn-mini" onclick="resetSave()">RESET</button>
+  </div>
+</div>
+
+<!-- 로비 UI -->
+<div id="lobby-layer">
+  <div class="lobby-shell">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="openTab('tab-match', this)">옥타곤 대전</button>
+      <button class="nav-tab" onclick="openTab('tab-gym', this)">4대 체육관</button>
+      <button class="nav-tab" onclick="openTab('tab-gacha', this)">기술 뽑기</button>
+      <button class="nav-tab" onclick="openTab('tab-roster', this)">선수 로스터</button>
     </div>
 
-    <!-- 메인 로비 화면 -->
-    <div id="main-menu" class="modal-overlay">
-        <div class="menu-card">
-            <h1>UNTITLED MMA 3D</h1>
-            <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('match')">옥타곤 대전</button>
-                <button class="tab-btn" onclick="switchTab('gym')">체육관 훈련</button>
-                <button class="tab-btn" onclick="switchTab('gacha')">기술 뽑기</button>
-            </div>
-
-            <!-- 탭 1: 옥타곤 대전 -->
-            <div id="tab-match" class="tab-content">
-                <p style="font-size:13px; color:#a0aec0; margin-top:0;">출전할 선수를 선택하고 옥타곤에 오르세요.</p>
-                <div class="roster-grid" id="roster-select-grid"></div>
-                <div style="background:#1a202c; padding:10px; border-radius:6px; margin-bottom:10px; font-size:13px;">
-                    상대 선수: <b id="opponent-name">하빕 누르마고메도프</b>
-                </div>
-                <button class="btn" onclick="startMatch()">옥타곤 경기 시작 (FIGHT)</button>
-            </div>
-
-            <!-- 탭 2: 체육관 훈련 -->
-            <div id="tab-gym" class="tab-content" style="display:none;">
-                <p style="font-size:13px; color:#a0aec0; margin-top:0;">파이트 머니로 능력치를 영구 강화하세요.</p>
-                <div class="gym-grid">
-                    <div class="gym-item active" onclick="trainStat('boxing')">🥊 복싱<br><span id="stat-boxing">100</span></div>
-                    <div class="gym-item" onclick="trainStat('jj')">🥋 주짓수<br><span id="stat-jj">100</span></div>
-                    <div class="gym-item" onclick="trainStat('muaythai')">🦵 무에타이<br><span id="stat-muaythai">100</span></div>
-                    <div class="gym-item" onclick="trainStat('wrestling')">🤼 레슬링<br><span id="stat-wrestling">100</span></div>
-                </div>
-                <button class="btn btn-secondary" onclick="trainStat('all')">전체 능력치 집중 단련 (₩1,500)</button>
-            </div>
-
-            <!-- 탭 3: 기술 뽑기 -->
-            <div id="tab-gacha" class="tab-content" style="display:none;">
-                <div style="text-align:center; padding:10px;">
-                    <h3>스페셜 MMA 기술 뽑기</h3>
-                    <p style="font-size:12px; color:#a0aec0;">SS(2%), S(10%), A(28%), B(60%) 확률 적용</p>
-                    <div id="gacha-result" style="font-size:16px; font-weight:bold; color:#ffcc00; margin:15px 0; min-height:30px;">뽑기를 진행하세요!</div>
-                    <button class="btn" onclick="pullGacha()">기술 1회 뽑기 (₩2,000)</button>
-                </div>
-            </div>
+    <!-- 1. 옥타곤 대전 -->
+    <div id="tab-match" class="tab-panel active">
+      <div class="match-card">
+        <div class="corner-row">
+          <div><span class="corner-badge corner-red">RED</span> <span class="fighter-title" id="lobby-p1-name">찰스 올리베이라</span></div>
+          <button class="btn-mini" onclick="openTab('tab-roster', document.querySelectorAll('.nav-tab')[3])">선수 변경</button>
         </div>
+        <div class="stat-chips" id="lobby-p1-stats"></div>
+      </div>
+
+      <div class="match-card">
+        <div class="corner-row">
+          <div><span class="corner-badge corner-blue">BLUE</span> <span class="fighter-title" id="lobby-p2-name">하빕 누르마고메도프</span></div>
+          <button class="btn-mini" onclick="cycleOpponent()">상대 변경</button>
+        </div>
+        <div class="stat-chips" id="lobby-p2-stats"></div>
+      </div>
+
+      <div class="event-banner">
+        <div class="event-sub">■ MAIN EVENT · 5 ROUNDS · LOCK-ON VIEW</div>
+        <div class="event-vs" id="lobby-vs-title">찰스 올리베이라 VS 하빕 누르마고메도프</div>
+        <div class="event-desc">
+          상대방에게 시선이 고정되는 록온(Lock-On) 시점입니다. <b>WASD</b>로 스텝을 밟고, 상대 타격 순간 <b>SPACE(위빙)</b>로 회피해 퍼펙트 카운터를 꽂으세요.
+        </div>
+        <button class="btn-primary" onclick="startBattle()">옥타곤 경기 시작 (FIGHT)</button>
+        <button class="btn-secondary" onclick="openTab('tab-gym', document.querySelectorAll('.nav-tab')[1])">체육관 훈련</button>
+      </div>
     </div>
 
-    <!-- 인게임 전투 UI -->
-    <div id="combat-hud">
-        <div class="fighter-health-box">
-            <div id="p1-name" style="font-weight:bold; font-size:13px;">PLAYER</div>
-            <div class="health-bar-bg"><div id="p1-hp" class="health-bar-fill"></div></div>
-        </div>
-        <div class="fighter-health-box" style="float:right; text-align:right;">
-            <div id="p2-name" style="font-weight:bold; font-size:13px;">OPPONENT</div>
-            <div class="health-bar-bg"><div id="p2-hp" class="health-bar-fill" style="background:#e53e3e;"></div></div>
-        </div>
+    <!-- 2. 4대 체육관 -->
+    <div id="tab-gym" class="tab-panel">
+      <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+        선택한 선수의 종목별 기본 능력을 영구 강화합니다. (훈련비 ₩800 / 최대 150)
+      </p>
+      <div class="grid-2" id="gym-list"></div>
     </div>
 
-    <!-- 모바일 터치 컨트롤러 -->
-    <div id="touch-controls">
-        <div class="control-group">
-            <div class="control-row"><button class="t-btn" ontouchstart="setKey('KeyW', true)" ontouchend="setKey('KeyW', false)">W</button></div>
-            <div class="control-row">
-                <button class="t-btn" ontouchstart="setKey('KeyA', true)" ontouchend="setKey('KeyA', false)">A</button>
-                <button class="t-btn" ontouchstart="setKey('KeyS', true)" ontouchend="setKey('KeyS', false)">S</button>
-                <button class="t-btn" ontouchstart="setKey('KeyD', true)" ontouchend="setKey('KeyD', false)">D</button>
-            </div>
+    <!-- 3. 기술 뽑기 -->
+    <div id="tab-gacha" class="tab-panel">
+      <div class="match-card" style="text-align:center;">
+        <div style="font-size:11px; color:var(--gold); font-weight:800;">SS 2% · S 10% · A 28% · B 60%</div>
+        <div style="font-size:15px; font-weight:900; margin:6px 0;">시그니처 필살기 가챠 (중복 시 +1 Lv)</div>
+        <div id="gacha-log" style="min-height:36px; font-size:13px; color:#fff; margin:8px 0; font-weight:700;">
+          1회 뽑기 비용: ₩1,200
         </div>
-        <div class="control-group" style="align-items: flex-end;">
-            <div class="control-row">
-                <button class="t-btn t-btn-action" ontouchstart="triggerAction('punch')">펀치</button>
-                <button class="t-btn t-btn-action" ontouchstart="triggerAction('kick')">킥</button>
-            </div>
-            <div class="control-row">
-                <button class="t-btn t-btn-action" style="background:rgba(49,130,206,0.8)" ontouchstart="triggerAction('wrestle')">테이크다운</button>
-                <button class="t-btn t-btn-action" style="background:rgba(214,158,46,0.8)" ontouchstart="triggerAction('weave')">위빙</button>
-            </div>
-        </div>
+        <button class="btn-primary" onclick="drawSkill()">기술 뽑기 (₩1,200)</button>
+      </div>
+      <div style="font-size:12px; font-weight:800; margin:8px 0;">보유 기술 (클릭하여 R키 필살기 장착)</div>
+      <div class="grid-2" id="skill-inventory"></div>
     </div>
 
-    <script>
-        // 게임 데이터 및 상태 관리
-        let purse = 5000, streak = 0;
-        let selectedFighterIdx = 0;
-        let stats = { boxing: 100, jj: 100, muaythai: 100, wrestling: 100 };
-        
-        const fighters = [
-            { name: "찰스 올리베이라", boxing: 90, jj: 98, muaythai: 92, wrestling: 88, color: 0xd4af37 },
-            { name: "메랍 드발리슈빌리", boxing: 88, jj: 85, muaythai: 89, wrestling: 98, color: 0x3182ce },
-            { name: "일리아 토푸리아", boxing: 97, jj: 90, muaythai: 93, wrestling: 90, color: 0xe53e3e },
-            { name: "코너 맥그리거", boxing: 96, jj: 80, muaythai: 92, wrestling: 78, color: 0x38a169 },
-            { name: "함자트 치마예프", boxing: 89, jj: 94, muaythai: 88, wrestling: 97, color: 0x805ad5 },
-            { name: "조제 알도", boxing: 92, jj: 88, muaythai: 96, wrestling: 85, color: 0xdd6b20 },
-            { name: "하빕 누르마고메도프", boxing: 85, jj: 96, muaythai: 85, wrestling: 99, color: 0x2b6cb0 },
-            { name: "존 존스", boxing: 94, jj: 95, muaythai: 94, wrestling: 96, color: 0x718096 },
-            { name: "프란시스 은가누", boxing: 99, jj: 75, muaythai: 95, wrestling: 85, color: 0x4a5568 }
-        ];
+    <!-- 4. 선수 로스터 -->
+    <div id="tab-roster" class="tab-panel">
+      <div class="grid-2" id="roster-list"></div>
+    </div>
+  </div>
+</div>
 
-        let opponentIdx = 1;
-        let gameState = 'MENU'; // MENU, WALKOUT, FIGHT, OVER
+<!-- 인게임 전투 HUD -->
+<div id="fight-hud">
+  <div class="fighters-hud">
+    <div class="f-bar-card">
+      <div class="f-bar-head">
+        <span><span class="corner-badge corner-red">RED</span> <span id="hud-p1-name">PLAYER</span></span>
+        <span id="hud-p1-hp-txt">1000 / 1000</span>
+      </div>
+      <div class="bar-track"><div class="hp-fill" id="hud-p1-hp" style="background:var(--red);"></div></div>
+      <div class="sub-bars">
+        <div>
+          <div class="mini-label"><span>STAMINA</span><span id="hud-p1-stam-txt">100%</span></div>
+          <div class="mini-track"><div class="stam-fill" id="hud-p1-stam"></div></div>
+        </div>
+        <div>
+          <div class="mini-label"><span>GUARD [F]</span><span id="hud-p1-grd-txt">100%</span></div>
+          <div class="mini-track"><div class="grd-fill" id="hud-p1-grd"></div></div>
+        </div>
+      </div>
+    </div>
 
-        // 선수 선택 그리드 초기화
-        const rosterGrid = document.getElementById('roster-select-grid');
-        fighters.forEach((f, idx) => {
-            let div = document.createElement('div');
-            div.className = `roster-item ${idx === 0 ? 'selected' : ''}`;
-            div.innerHTML = `<b>${f.name.split(' ')[0]}</b><br><span style="font-size:11px;color:#a0aec0">주짓수 ${f.jj}</span>`;
-            div.onclick = () => {
-                document.querySelectorAll('.roster-item').forEach(el => el.classList.remove('selected'));
-                div.classList.add('selected');
-                selectedFighterIdx = idx;
-                pickRandomOpponent();
-            };
-            rosterGrid.appendChild(div);
-        });
+    <div class="f-bar-card">
+      <div class="f-bar-head">
+        <span><span class="corner-badge corner-blue">BLUE</span> <span id="hud-p2-name">OPPONENT</span></span>
+        <span id="hud-p2-hp-txt">1000 / 1000</span>
+      </div>
+      <div class="bar-track"><div class="hp-fill" id="hud-p2-hp" style="background:var(--blue);"></div></div>
+      <div class="sub-bars">
+        <div>
+          <div class="mini-label"><span>STAMINA</span><span id="hud-p2-stam-txt">100%</span></div>
+          <div class="mini-track"><div class="stam-fill" id="hud-p2-stam"></div></div>
+        </div>
+        <div>
+          <div class="mini-label"><span>GUARD</span><span id="hud-p2-grd-txt">100%</span></div>
+          <div class="mini-track"><div class="grd-fill" id="hud-p2-grd"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function pickRandomOpponent() {
-            do { opponentIdx = Math.floor(Math.random() * fighters.length); } while(opponentIdx === selectedFighterIdx);
-            document.getElementById('opponent-name').innerText = fighters[opponentIdx].name;
+  <div id="center-callout">FIGHT!</div>
+
+  <!-- 주짓수 서브미션 미니게임 -->
+  <div id="sub-minigame">
+    <div style="font-size:12px; font-weight:900; color:var(--gold);">JIU-JITSU SUBMISSION LOCK!</div>
+    <div style="font-size:11px; color:var(--muted);">초록 구간에서 [U] 또는 탭하여 관절기 완성!</div>
+    <div class="sub-track">
+      <div id="sub-sweetspot"></div>
+      <div id="sub-needle"></div>
+    </div>
+    <button class="btn-primary" style="padding:8px;" onclick="attemptSubLock()">관절기 조이기! [U]</button>
+  </div>
+
+  <!-- 하단 조작패드 -->
+  <div class="bottom-controls">
+    <div class="dpad-box">
+      <div class="pad-row"><button class="pad-btn" onpointerdown="keys.KeyW=true" onpointerup="keys.KeyW=false" onpointerleave="keys.KeyW=false">W<small>전진</small></button></div>
+      <div class="pad-row">
+        <button class="pad-btn" onpointerdown="keys.KeyA=true" onpointerup="keys.KeyA=false" onpointerleave="keys.KeyA=false">A<small>좌선회</small></button>
+        <button class="pad-btn" onpointerdown="keys.KeyS=true" onpointerup="keys.KeyS=false" onpointerleave="keys.KeyS=false">S<small>후퇴</small></button>
+        <button class="pad-btn" onpointerdown="keys.KeyD=true" onpointerup="keys.KeyD=false" onpointerleave="keys.KeyD=false">D<small>우선회</small></button>
+      </div>
+      <div class="pad-row">
+        <button class="pad-btn btn-weave" onclick="doWeave()">SPACE<small>위빙 회피</small></button>
+      </div>
+    </div>
+
+    <div class="action-box">
+      <div class="pad-row">
+        <button class="pad-btn" onclick="playerAttack('boxing')">J<small>복싱</small></button>
+        <button class="pad-btn" onclick="playerAttack('kick')">K<small>킥</small></button>
+      </div>
+      <div class="pad-row">
+        <button class="pad-btn" onclick="playerAttack('wrestling')">L<small>레슬링</small></button>
+        <button class="pad-btn" onclick="playerAttack('bjj')">U<small>주짓수</small></button>
+      </div>
+      <div class="pad-row">
+        <button class="pad-btn" onpointerdown="keys.KeyF=true" onpointerup="keys.KeyF=false" onpointerleave="keys.KeyF=false">F<small>가드</small></button>
+        <button class="pad-btn btn-sig" onclick="playerAttack('sig')">R<small id="hud-sig-label">필살기</small></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 1. 데이터 및 로스터 ================= */
+const FIGHTERS = [
+  { id:'oliveira', name:'찰스 올리베이라', nick:'Do Bronx', style:'주짓수 스페셜리스트', stats:{boxing:88, kick:89, wrestling:85, bjj:98}, shorts:0xffffff, trim:0xeab308, hair:0xfde047, beard:true, scale:[1.0,1.02,1.0] },
+  { id:'merab', name:'메랍 드발리슈빌리', nick:'The Machine', style:'무한 체력 레슬러', stats:{boxing:86, kick:84, wrestling:98, bjj:87}, shorts:0x1d4ed8, trim:0xffffff, hair:0x1f2937, beard:true, scale:[0.98,0.94,0.98] },
+  { id:'topuria', name:'일리아 토푸리아', nick:'El Matador', style:'복싱 & 그레코로만', stats:{boxing:97, kick:90, wrestling:91, bjj:92}, shorts:0xdc2626, trim:0xfacc15, hair:0x111827, beard:true, scale:[1.02,0.95,1.02] },
+  { id:'mcgregor', name:'코너 맥그리거', nick:'The Notorious', style:'사우스포 카운터 펀처', stats:{boxing:96, kick:92, wrestling:78, bjj:81}, shorts:0x059669, trim:0xfacc15, hair:0xb45309, beard:true, scale:[1.03,0.98,1.0] },
+  { id:'khamzat', name:'함자트 치마예프', nick:'Borz', style:'압도적 체인 레슬링', stats:{boxing:89, kick:85, wrestling:97, bjj:94}, shorts:0x111827, trim:0xef4444, hair:0x111827, beard:true, scale:[1.05,1.06,1.04] },
+  { id:'aldo', name:'조제 알도', nick:'Junior', style:'레그킥 & 테이크다운 방어', stats:{boxing:92, kick:96, wrestling:88, bjj:89}, shorts:0x16a34a, trim:0xfacc15, hair:0x111827, beard:false, scale:[1.0,0.95,1.0] },
+  { id:'khabib', name:'하빕 누르마고메도프', nick:'The Eagle', style:'삼보 & 그라운드 압박', stats:{boxing:84, kick:82, wrestling:99, bjj:96}, shorts:0x111827, trim:0xffffff, hair:0x111827, beard:true, scale:[1.04,1.0,1.04] },
+  { id:'jones', name:'존 존스', nick:'Bones', style:'올라운드 GOAT & 긴 리치', stats:{boxing:93, kick:95, wrestling:95, bjj:95}, shorts:0x991b1b, trim:0xffffff, hair:0x111827, beard:true, scale:[1.06,1.11,1.05] },
+  { id:'ngannou', name:'프란시스 은가누', nick:'The Predator', style:'헤비급 원펀치 KO', stats:{boxing:99, kick:91, wrestling:86, bjj:76}, shorts:0x1f2937, trim:0xeab308, hair:0x111827, beard:true, scale:[1.18,1.10,1.16] }
+];
+
+const SKILLS_POOL = [
+  { id:'showtime', name:'케이지 반동 쇼타임 킥', grade:'SS', type:'kick', mult:2.35 },
+  { id:'flying_armbar', name:'초고속 플라잉 암바', grade:'SS', type:'bjj', mult:2.4 },
+  { id:'brazilian_kick', name:'브라질리언 킥', grade:'S', type:'kick', mult:1.95 },
+  { id:'imanari', name:'이마나리 롤 + 힐훅', grade:'S', type:'bjj', mult:2.0 },
+  { id:'wheel_kick', name:'스피닝 휠킥', grade:'S', type:'kick', mult:1.9 },
+  { id:'darce', name:'다스 초크 기습', grade:'S', type:'bjj', mult:1.9 },
+  { id:'flying_knee', name:'플라잉 니킥', grade:'A', type:'kick', mult:1.6 },
+  { id:'suplex', name:'하이 앰플리튜드 수플렉스', grade:'A', type:'wrestling', mult:1.65 },
+  { id:'backfist', name:'스피닝 백피스트', grade:'A', type:'boxing', mult:1.55 },
+  { id:'onetwo', name:'원투 오버핸드 콤보', grade:'B', type:'boxing', mult:1.35 },
+  { id:'double_leg', name:'파워 더블렉 슬램', grade:'B', type:'wrestling', mult:1.35 }
+];
+
+const DEFAULT_STATE = {
+  purse: 3000,
+  streak: 0,
+  selectedId: 'oliveira',
+  opponentIdx: 6,
+  gymBonus: {},
+  ownedSkills: { onetwo: 1 },
+  equippedSkill: 'onetwo'
+};
+let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v2') || 'null') || structuredClone(DEFAULT_STATE);
+function saveState() { localStorage.setItem('untitled_mma_3d_v2', JSON.stringify(state)); }
+function resetSave() { localStorage.removeItem('untitled_mma_3d_v2'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
+
+function getPlayerFighter() { return FIGHTERS.find(f => f.id === state.selectedId) || FIGHTERS[0]; }
+function getEffectiveStats(fighterId) {
+  const f = FIGHTERS.find(x => x.id === fighterId);
+  const b = state.gymBonus[fighterId] || { boxing:0, kick:0, wrestling:0, bjj:0 };
+  return {
+    boxing: Math.min(150, f.stats.boxing + (b.boxing||0)),
+    kick: Math.min(150, f.stats.kick + (b.kick||0)),
+    wrestling: Math.min(150, f.stats.wrestling + (b.wrestling||0)),
+    bjj: Math.min(150, f.stats.bjj + (b.bjj||0))
+  };
+}
+
+/* ================= 2. 로비 렌더링 ================= */
+function openTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  renderLobby();
+}
+
+function cycleOpponent() {
+  state.opponentIdx = (state.opponentIdx + 1) % FIGHTERS.length;
+  if (FIGHTERS[state.opponentIdx].id === state.selectedId) {
+    state.opponentIdx = (state.opponentIdx + 1) % FIGHTERS.length;
+  }
+  saveState(); renderLobby();
+}
+
+function renderLobby() {
+  document.getElementById('purse-val').innerText = `₩${state.purse.toLocaleString()}`;
+  document.getElementById('streak-val').innerText = `${state.streak}W`;
+
+  const p1 = getPlayerFighter();
+  const s1 = getEffectiveStats(p1.id);
+  const p2 = FIGHTERS[state.opponentIdx];
+  const s2 = p2.stats;
+
+  document.getElementById('lobby-p1-name').innerText = p1.name;
+  document.getElementById('lobby-p1-stats').innerHTML = `
+    <span class="chip">복싱 <b>${s1.boxing}</b></span>
+    <span class="chip">킥 <b>${s1.kick}</b></span>
+    <span class="chip">레슬링 <b>${s1.wrestling}</b></span>
+    <span class="chip">주짓수 <b>${s1.bjj}</b></span>
+  `;
+
+  document.getElementById('lobby-p2-name').innerText = p2.name;
+  document.getElementById('lobby-p2-stats').innerHTML = `
+    <span class="chip">복싱 <b>${s2.boxing}</b></span>
+    <span class="chip">킥 <b>${s2.kick}</b></span>
+    <span class="chip">레슬링 <b>${s2.wrestling}</b></span>
+    <span class="chip">주짓수 <b>${s2.bjj}</b></span>
+  `;
+  document.getElementById('lobby-vs-title').innerText = `${p1.name} VS ${p2.name}`;
+
+  // 체육관
+  const gyms = [
+    { key:'boxing', title:'복싱 체육관', desc:'펀치 위력 & 연타 속도 강화' },
+    { key:'kick', title:'무에타이 체육관', desc:'하이/로우킥 위력 & 리치 강화' },
+    { key:'wrestling', title:'레슬링 체육관', desc:'테이크다운 돌진 & 슬램 데미지' },
+    { key:'bjj', title:'주짓수 체육관', desc:'서브미션 판정 구간 & 초크 위력' }
+  ];
+  document.getElementById('gym-list').innerHTML = gyms.map(g => `
+    <div class="card-box">
+      <div>
+        <div style="font-size:13px;font-weight:800;">${g.title}</div>
+        <div style="font-size:11px;color:var(--muted);margin:3px 0;">${g.desc}</div>
+        <div style="font-size:13px;font-weight:900;color:var(--gold);margin:4px 0;">현재 ${s1[g.key]} / 150</div>
+      </div>
+      <button class="btn-secondary" onclick="trainGym('${g.key}')">+3 훈련 (₩800)</button>
+    </div>
+  `).join('');
+
+  // 로스터
+  document.getElementById('roster-list').innerHTML = FIGHTERS.map(f => {
+    const st = getEffectiveStats(f.id);
+    return `
+      <div class="card-box ${f.id===state.selectedId?'selected':''}" style="cursor:pointer" onclick="selectFighter('${f.id}')">
+        <div style="font-size:13px;font-weight:900;">${f.name}</div>
+        <div style="font-size:10px;color:var(--gold);margin-bottom:5px;">${f.style}</div>
+        <div style="font-size:11px;color:var(--muted);">복${st.boxing} · 킥${st.kick} · 레${st.wrestling} · 주${st.bjj}</div>
+      </div>
+    `;
+  }).join('');
+
+  // 보유 기술
+  document.getElementById('skill-inventory').innerHTML = Object.entries(state.ownedSkills).map(([sid, lv]) => {
+    const sk = SKILLS_POOL.find(x => x.id === sid);
+    if (!sk) return '';
+    return `
+      <div class="card-box ${state.equippedSkill===sid?'selected':''}" style="cursor:pointer" onclick="equipSkill('${sid}')">
+        <div>
+          <span class="grade-badge g-${sk.grade}">${sk.grade}</span>
+          <span style="font-size:11px;font-weight:800;color:var(--gold);"> Lv.${lv}</span>
+          <div style="font-size:12px;font-weight:800;margin-top:4px;">${sk.name}</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">${state.equippedSkill===sid?'[장착중]':'클릭해 장착'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectFighter(id) {
+  state.selectedId = id;
+  if (FIGHTERS[state.opponentIdx].id === id) cycleOpponent();
+  saveState(); renderLobby();
+}
+
+function trainGym(key) {
+  if (state.purse < 800) { alert('파이트 머니가 부족합니다!'); return; }
+  const cur = getEffectiveStats(state.selectedId)[key];
+  if (cur >= 150) { alert('이미 최대 능력치입니다!'); return; }
+  state.purse -= 800;
+  if (!state.gymBonus[state.selectedId]) state.gymBonus[state.selectedId] = { boxing:0, kick:0, wrestling:0, bjj:0 };
+  state.gymBonus[state.selectedId][key] += 3;
+  saveState(); renderLobby();
+}
+
+function drawSkill() {
+  if (state.purse < 1200) { alert('파이트 머니가 부족합니다!'); return; }
+  state.purse -= 1200;
+  const r = Math.random() * 100;
+  const grade = r < 2 ? 'SS' : r < 12 ? 'S' : r < 40 ? 'A' : 'B';
+  const pool = SKILLS_POOL.filter(s => s.grade === grade);
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  const isDup = !!state.ownedSkills[picked.id];
+  state.ownedSkills[picked.id] = (state.ownedSkills[picked.id] || 0) + 1;
+  state.equippedSkill = picked.id;
+  document.getElementById('gacha-log').innerHTML =
+    `<span class="grade-badge g-${grade}">${grade}등급</span> ${picked.name} ${isDup ? `(중복 레벨업! Lv.${state.ownedSkills[picked.id]})` : '신규 획득!'}`;
+  saveState(); renderLobby();
+}
+
+function equipSkill(sid) { state.equippedSkill = sid; saveState(); renderLobby(); }
+
+/* ================= 3. Three.js 3D 옥타곤 & 관절 파이터 ================= */
+const canvas = document.getElementById('game-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x06080c);
+scene.fog = new THREE.FogExp2(0x06080c, 0.022);
+
+const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 120);
+camera.position.set(0, 4.2, 9.5);
+
+// 아레나 조명
+scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+const spotMain = new THREE.SpotLight(0xffffff, 1.4, 45, Math.PI / 4, 0.35);
+spotMain.position.set(0, 16, 0);
+spotMain.castShadow = true;
+scene.add(spotMain);
+
+const redRim = new THREE.PointLight(0xe62343, 1.1, 18);
+redRim.position.set(-7, 4, 5);
+scene.add(redRim);
+
+const blueRim = new THREE.PointLight(0x2374e6, 1.1, 18);
+blueRim.position.set(7, 4, -5);
+scene.add(blueRim);
+
+// 8각 옥타곤 매트 & 펜스 기둥
+const OCT_RADIUS = 7.6;
+const matGeo = new THREE.CylinderGeometry(OCT_RADIUS, OCT_RADIUS + 0.3, 0.6, 8);
+const matMesh = new THREE.Mesh(matGeo, new THREE.MeshStandardMaterial({ color: 0x1b222c, roughness: 0.85 }));
+matMesh.position.y = -0.3;
+matMesh.receiveShadow = true;
+scene.add(matMesh);
+
+const innerRing = new THREE.Mesh(
+  new THREE.RingGeometry(4.6, 4.85, 8),
+  new THREE.MeshBasicMaterial({ color: 0xe62343, side: THREE.DoubleSide })
+);
+innerRing.rotation.x = -Math.PI / 2;
+innerRing.position.y = 0.01;
+scene.add(innerRing);
+
+for (let i = 0; i < 8; i++) {
+  const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.14, 0.14, 2.3, 8),
+    new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xe62343 : 0x2374e6, roughness: 0.4 })
+  );
+  post.position.set(Math.cos(a) * (OCT_RADIUS - 0.15), 1.15, Math.sin(a) * (OCT_RADIUS - 0.15));
+  scene.add(post);
+}
+
+// 관절형 휴머노이드 파이터 빌더
+function buildArticulatedFighter(fData, gloveColor) {
+  const root = new THREE.Group();
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xd99b72, roughness: 0.55 });
+  const shortsMat = new THREE.MeshStandardMaterial({ color: fData.shorts, roughness: 0.6 });
+  const gloveMat = new THREE.MeshStandardMaterial({ color: gloveColor, roughness: 0.35 });
+
+  const bodyPivot = new THREE.Group();
+  bodyPivot.position.y = 1.05;
+  root.add(bodyPivot);
+
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.88, 0.36), skinMat);
+  torso.position.y = 0.44;
+  torso.castShadow = true;
+  bodyPivot.add(torso);
+
+  const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.36, 0.38), shortsMat);
+  pelvis.position.y = -0.05;
+  bodyPivot.add(pelvis);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), skinMat);
+  head.position.y = 1.08;
+  head.castShadow = true;
+  bodyPivot.add(head);
+
+  if (fData.hair) {
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.248, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      new THREE.MeshStandardMaterial({ color: fData.hair, roughness: 0.8 })
+    );
+    hair.position.y = 1.09;
+    bodyPivot.add(hair);
+  }
+
+  function makeLimb(w, h, colorMat, x, y) {
+    const piv = new THREE.Group();
+    piv.position.set(x, y, 0);
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), colorMat);
+    mesh.position.y = -h / 2;
+    mesh.castShadow = true;
+    piv.add(mesh);
+    return piv;
+  }
+
+  const leftArm = makeLimb(0.2, 0.68, skinMat, -0.46, 0.82);
+  const rightArm = makeLimb(0.2, 0.68, skinMat, 0.46, 0.82);
+  const lGlove = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), gloveMat);
+  lGlove.position.y = -0.68; leftArm.add(lGlove);
+  const rGlove = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), gloveMat);
+  rGlove.position.y = -0.68; rightArm.add(rGlove);
+  bodyPivot.add(leftArm, rightArm);
+
+  const leftLeg = makeLimb(0.24, 0.95, skinMat, -0.2, 0.95);
+  const rightLeg = makeLimb(0.24, 0.95, skinMat, 0.2, 0.95);
+  root.add(leftLeg, rightLeg);
+
+  root.scale.set(...fData.scale);
+  return { root, bodyPivot, leftArm, rightArm, leftLeg, rightLeg };
+}
+
+/* ================= 4. 전투 엔진 & 록온 카메라 ================= */
+let mode = 'LOBBY'; // LOBBY, FIGHT, OVER
+let p1Mesh = null, p2Mesh = null;
+let p1 = {}, p2 = {};
+let keys = {};
+let timeScale = 1.0;
+let hitStopTimer = 0;
+
+// 주짓수 서브미션 미니게임 상태
+let subGame = { active: false, pos: 0, dir: 1, sweetStart: 35, sweetWidth: 26, dmg: 0 };
+
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (mode !== 'FIGHT') return;
+  if (subGame.active && (e.code === 'KeyU' || e.code === 'Space')) { attemptSubLock(); return; }
+  if (e.code === 'Space') { e.preventDefault(); doWeave(); }
+  if (e.code === 'KeyJ') playerAttack('boxing');
+  if (e.code === 'KeyK') playerAttack('kick');
+  if (e.code === 'KeyL' || e.code === 'KeyE') playerAttack('wrestling');
+  if (e.code === 'KeyU' || e.code === 'KeyQ') playerAttack('bjj');
+  if (e.code === 'KeyR') playerAttack('sig');
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+function callout(text, color = '#eab308') {
+  const el = document.getElementById('center-callout');
+  el.innerText = text;
+  el.style.color = color;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 1100);
+}
+
+function startBattle() {
+  document.getElementById('lobby-layer').style.display = 'none';
+  document.getElementById('fight-hud').style.display = 'block';
+
+  if (p1Mesh) scene.remove(p1Mesh.root);
+  if (p2Mesh) scene.remove(p2Mesh.root);
+
+  const f1 = getPlayerFighter();
+  const f2 = FIGHTERS[state.opponentIdx];
+  p1Mesh = buildArticulatedFighter(f1, 0xe62343);
+  p2Mesh = buildArticulatedFighter(f2, 0x2374e6);
+  scene.add(p1Mesh.root, p2Mesh.root);
+
+  p1 = {
+    x: 0, z: 2.6, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
+    stats: getEffectiveStats(f1.id),
+    weaving: 0, counterWindow: 0, atkTimer: 0, atkType: '', aiCd: 0
+  };
+  p2 = {
+    x: 0, z: -2.6, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
+    stats: f2.stats,
+    weaving: 0, counterWindow: 0, atkTimer: 0, atkType: '', aiCd: 1.0
+  };
+
+  const eq = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
+  document.getElementById('hud-p1-name').innerText = f1.name;
+  document.getElementById('hud-p2-name').innerText = f2.name;
+  document.getElementById('hud-sig-label').innerText = eq.name.slice(0, 6);
+
+  mode = 'FIGHT';
+  callout('ROUND 1 — FIGHT!', '#fff');
+}
+
+function doWeave() {
+  if (mode !== 'FIGHT' || p1.weaving > 0 || p1.stam < 14) return;
+  p1.stam -= 14;
+  p1.weaving = 0.36;
+  // 방향키 입력 쪽으로 스텝 회피
+  const dx = p2.x - p1.x, dz = p2.z - p1.z;
+  const dist = Math.hypot(dx, dz) || 1;
+  const rx = -dz / dist, rz = dx / dist;
+  const side = keys.KeyA ? -1 : keys.KeyD ? 1 : (Math.random() < 0.5 ? -1 : 1);
+  p1.x += rx * side * 1.15;
+  p1.z += rz * side * 1.15;
+}
+
+function playerAttack(type) {
+  if (mode !== 'FIGHT' || p1.atkTimer > 0 || p1.weaving > 0 || subGame.active) return;
+  const cost = type === 'sig' ? 32 : type === 'wrestling' ? 22 : 14;
+  if (p1.stam < cost) { callout('스태미나 부족!', '#9ca3af'); return; }
+
+  p1.stam -= cost;
+  p1.atkTimer = 0.38;
+  p1.atkType = type;
+
+  const dist = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+  const reach = type === 'kick' || type === 'wrestling' || type === 'sig' ? 2.75 : 2.15;
+
+  // 레슬링 전진 돌진
+  if (type === 'wrestling' || type === 'sig') {
+    const ang = Math.atan2(p2.x - p1.x, p2.z - p1.z);
+    p1.x += Math.sin(ang) * 0.95;
+    p1.z += Math.cos(ang) * 0.95;
+  }
+
+  if (dist > reach) return;
+
+  // 기본 데미지 계산
+  const st = p1.stats;
+  let base = 42;
+  let mult = 1.0;
+  if (type === 'boxing') base = st.boxing * 0.58;
+  else if (type === 'kick') base = st.kick * 0.72;
+  else if (type === 'wrestling') base = st.wrestling * 0.85;
+  else if (type === 'bjj') base = st.bjj * 0.68;
+  else if (type === 'sig') {
+    const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
+    const lv = state.ownedSkills[sk.id] || 1;
+    base = st[sk.type] * 0.75 * sk.mult * (1 + (lv - 1) * 0.12);
+    callout(`★ ${sk.name}!`, '#eab308');
+  }
+
+  if (p1.counterWindow > 0) {
+    mult *= 1.5;
+    p1.counterWindow = 0;
+    callout('PERFECT WEAVE COUNTER! 1.5x', '#06b6d4');
+  }
+
+  const finalDmg = Math.round(base * mult);
+  p2.hp = Math.max(0, p2.hp - finalDmg);
+  hitStopTimer = 0.045;
+
+  // 넉백
+  const pushAng = Math.atan2(p2.x - p1.x, p2.z - p1.z);
+  p2.x += Math.sin(pushAng) * (type === 'wrestling' ? 1.1 : 0.45);
+  p2.z += Math.cos(pushAng) * (type === 'wrestling' ? 1.1 : 0.45);
+
+  // 주짓수 정타 시 서브미션 미니게임 발동
+  if (type === 'bjj' && p2.hp > 0 && Math.random() < 0.65) {
+    openSubMinigame(Math.round(st.bjj * 1.45), st.bjj);
+  }
+
+  if (p2.hp <= 0) finishBattle(true);
+}
+
+function openSubMinigame(dmg, bjjStat) {
+  subGame.active = true;
+  subGame.pos = 0;
+  subGame.dir = 1;
+  subGame.sweetWidth = Math.min(42, 18 + (bjjStat - 80) * 0.4);
+  subGame.sweetStart = 25 + Math.random() * (65 - subGame.sweetWidth);
+  subGame.dmg = dmg;
+
+  const spotEl = document.getElementById('sub-sweetspot');
+  spotEl.style.left = `${subGame.sweetStart}%`;
+  spotEl.style.width = `${subGame.sweetWidth}%`;
+  document.getElementById('sub-minigame').style.display = 'block';
+}
+
+function attemptSubLock() {
+  if (!subGame.active) return;
+  subGame.active = false;
+  document.getElementById('sub-minigame').style.display = 'none';
+  if (subGame.pos >= subGame.sweetStart && subGame.pos <= subGame.sweetStart + subGame.sweetWidth) {
+    p2.hp = Math.max(0, p2.hp - subGame.dmg);
+    callout(`TAP OUT! 서브미션 성공 (-${subGame.dmg})`, '#10b981');
+    if (p2.hp <= 0) finishBattle(true);
+  } else {
+    callout('상대가 그립을 풀고 탈출했습니다!', '#9ca3af');
+  }
+}
+
+function finishBattle(playerWon) {
+  mode = 'OVER';
+  subGame.active = false;
+  document.getElementById('sub-minigame').style.display = 'none';
+  if (playerWon) {
+    const reward = 1800 + state.streak * 400;
+    state.purse += reward;
+    state.streak += 1;
+    callout(`KO / SUBMISSION VICTORY! +₩${reward.toLocaleString()}`, '#eab308');
+  } else {
+    state.streak = 0;
+    callout('DEFEAT... 체육관에서 다시 단련하세요', '#e62343');
+  }
+  saveState();
+  setTimeout(() => {
+    document.getElementById('fight-hud').style.display = 'none';
+    document.getElementById('lobby-layer').style.display = 'flex';
+    renderLobby();
+    mode = 'LOBBY';
+  }, 2400);
+}
+
+/* ================= 5. 메인 루프 & 관절 애니메이션 ================= */
+const clock = new THREE.Clock();
+
+function clampOctagon(ent) {
+  const d = Math.hypot(ent.x, ent.z);
+  const maxR = OCT_RADIUS - 0.7;
+  if (d > maxR) {
+    ent.x = (ent.x / d) * maxR;
+    ent.z = (ent.z / d) * maxR;
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const rawDt = Math.min(clock.getDelta(), 0.05);
+
+  if (hitStopTimer > 0) {
+    hitStopTimer -= rawDt;
+    renderer.render(scene, camera);
+    return;
+  }
+
+  const dt = rawDt * timeScale;
+  timeScale = THREE.MathUtils.lerp(timeScale, 1.0, rawDt * 6);
+
+  if (mode === 'LOBBY') {
+    const t = clock.elapsedTime * 0.35;
+    camera.position.set(Math.sin(t) * 11, 4.8, Math.cos(t) * 11);
+    camera.lookAt(0, 1.0, 0);
+  } else if (mode === 'FIGHT') {
+    // 스태미나 & 가드 회복
+    const guarding = !!keys.KeyF;
+    p1.stam = Math.min(100, p1.stam + (guarding ? 6 : 15) * dt);
+    p2.stam = Math.min(100, p2.stam + 14 * dt);
+    if (!guarding) p1.grd = Math.min(100, p1.grd + 10 * dt);
+
+    if (p1.weaving > 0) p1.weaving -= dt;
+    if (p1.counterWindow > 0) p1.counterWindow -= dt;
+    if (p1.atkTimer > 0) p1.atkTimer -= dt;
+    if (p2.atkTimer > 0) p2.atkTimer -= dt;
+
+    // 록온 기준 이동 (W/S 전후진, A/D 상대 중심 서클 선회)
+    const dx = p2.x - p1.x, dz = p2.z - p1.z;
+    const dist = Math.hypot(dx, dz) || 1;
+    const fx = dx / dist, fz = dz / dist;
+    const rx = -fz, rz = fx;
+    const spd = (guarding ? 2.4 : 4.4) * dt;
+
+    if (!subGame.active) {
+      if (keys.KeyW && dist > 1.35) { p1.x += fx * spd; p1.z += fz * spd; }
+      if (keys.KeyS) { p1.x -= fx * spd; p1.z -= fz * spd; }
+      if (keys.KeyA) { p1.x -= rx * spd; p1.z -= rz * spd; }
+      if (keys.KeyD) { p1.x += rx * spd; p1.z += rz * spd; }
+    }
+
+    // 상대 AI 로직
+    p2.aiCd -= dt;
+    if (!subGame.active && p2.aiCd <= 0) {
+      if (dist > 2.3) {
+        p2.x -= fx * 3.4 * dt;
+        p2.z -= fz * 3.4 * dt;
+      } else {
+        p2.aiCd = 0.95 + Math.random() * 0.6;
+        p2.atkTimer = 0.35;
+        // 위빙 타이밍 판정
+        if (p1.weaving > 0) {
+          p1.counterWindow = 1.4;
+          timeScale = 0.35;
+          callout('SLIP! 카운터 찬스!', '#06b6d4');
+        } else {
+          const aiBase = Math.max(p2.stats.boxing, p2.stats.wrestling) * 0.55;
+          if (guarding && p1.grd > 15) {
+            p1.grd = Math.max(0, p1.grd - 18);
+            p1.hp = Math.max(0, p1.hp - Math.round(aiBase * 0.25));
+          } else {
+            p1.hp = Math.max(0, p1.hp - Math.round(aiBase));
+          }
+          if (p1.hp <= 0) finishBattle(false);
         }
-        pickRandomOpponent();
+      }
+    }
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            if(tabName === 'match') {
-                document.getElementById('tab-match').style.display = 'block';
-                event.target.classList.add('active');
-            } else if(tabName === 'gym') {
-                document.getElementById('tab-gym').style.display = 'block';
-                event.target.classList.add('active');
-            } else if(tabName === 'gacha') {
-                document.getElementById('tab-gacha').style.display = 'block';
-                event.target.classList.add('active');
-            }
-        }
+    clampOctagon(p1);
+    clampOctagon(p2);
 
-        function trainStat(type) {
-            if(type === 'all') {
-                if(purse < 1500) { alert('파이트 머니가 부족합니다!'); return; }
-                purse -= 1500;
-                stats.boxing += 3; stats.jj += 3; stats.muaythai += 3; stats.wrestling += 3;
-            } else {
-                if(purse < 500) { alert('파이트 머니가 부족합니다!'); return; }
-                purse -= 500;
-                stats[type] += 5;
-            }
-            updateUI();
-        }
+    // 3D 모델 위치 및 상호 록온 회전
+    p1Mesh.root.position.set(p1.x, 0, p1.z);
+    p2Mesh.root.position.set(p2.x, 0, p2.z);
+    p1Mesh.root.lookAt(p2.x, 0, p2.z);
+    p2Mesh.root.lookAt(p1.x, 0, p1.z);
 
-        function pullGacha() {
-            if(purse < 2000) { alert('파이트 머니가 부족합니다!'); return; }
-            purse -= 2000;
-            updateUI();
-            
-            let roll = Math.random() * 100;
-            let res = "";
-            if(roll < 2) res = "✨ [SS등급] 케이지 반동 쇼타임 킥!";
-            else if(roll < 12) res = "🔥 [S등급] 브라질리언 킥 & 이마나리 롤";
-            else if(roll < 40) res = "⭐ [A등급] 플라잉 니킥 & 수플렉스";
-            else res = "📌 [B등급] 원투 콤보 강화 패시브";
-            document.getElementById('gacha-result').innerText = res;
-        }
+    // 위빙 & 가드 & 공격 관절 포즈
+    p1Mesh.bodyPivot.rotation.z = p1.weaving > 0 ? 0.55 : 0;
+    p1Mesh.bodyPivot.position.y = p1.weaving > 0 ? 0.78 : 1.05;
+    p1Mesh.leftArm.rotation.x = guarding ? -1.45 : (p1.atkTimer > 0 && p1.atkType === 'boxing' ? -1.6 : -0.75);
+    p1Mesh.rightArm.rotation.x = guarding ? -1.45 : (p1.atkTimer > 0 && p1.atkType === 'wrestling' ? -1.3 : -0.75);
+    p1Mesh.rightLeg.rotation.x = (p1.atkTimer > 0 && (p1.atkType === 'kick' || p1.atkType === 'sig')) ? -1.35 : 0;
+    p2Mesh.rightArm.rotation.x = p2.atkTimer > 0 ? -1.55 : -0.75;
 
-        function updateUI() {
-            document.getElementById('ui-purse').innerText = `₩${purse.toLocaleString()}`;
-            document.getElementById('ui-streak').innerText = `${streak}W`;
-            document.getElementById('stat-boxing').innerText = stats.boxing;
-            document.getElementById('stat-jj').innerText = stats.jj;
-            document.getElementById('stat-muaythai').innerText = stats.muaythai;
-            document.getElementById('stat-wrestling').innerText = stats.wrestling;
-        }
+    // 록온 3인칭 어깨 너머 카메라
+    const camX = p1.x - fx * 3.7 + rx * 0.55;
+    const camZ = p1.z - fz * 3.7 + rz * 0.55;
+    camera.position.lerp(new THREE.Vector3(camX, 2.35, camZ), 0.16);
+    camera.lookAt(p2.x, 1.25, p2.z);
 
-        // Three.js 3D 옥타곤 및 전투 엔진 설정
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x07080b);
-        scene.fog = new THREE.FogExp2(0x07080b, 0.015);
+    // 서브미션 바늘 이동
+    if (subGame.active) {
+      subGame.pos += subGame.dir * 135 * dt;
+      if (subGame.pos >= 98) { subGame.pos = 98; subGame.dir = -1; }
+      if (subGame.pos <= 0) { subGame.pos = 0; subGame.dir = 1; }
+      document.getElementById('sub-needle').style.left = `${subGame.pos}%`;
+    }
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
+    // HUD 업데이트
+    document.getElementById('hud-p1-hp').style.width = `${(p1.hp / p1.maxHp) * 100}%`;
+    document.getElementById('hud-p1-hp-txt').innerText = `${p1.hp} / ${p1.maxHp}`;
+    document.getElementById('hud-p1-stam').style.width = `${p1.stam}%`;
+    document.getElementById('hud-p1-stam-txt').innerText = `${Math.round(p1.stam)}%`;
+    document.getElementById('hud-p1-grd').style.width = `${p1.grd}%`;
+    document.getElementById('hud-p1-grd-txt').innerText = `${Math.round(p1.grd)}%`;
 
-        // 조명 설정
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(0, 20, 10);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+    document.getElementById('hud-p2-hp').style.width = `${(p2.hp / p2.maxHp) * 100}%`;
+    document.getElementById('hud-p2-hp-txt').innerText = `${p2.hp} / ${p2.maxHp}`;
+    document.getElementById('hud-p2-stam').style.width = `${p2.stam}%`;
+    document.getElementById('hud-p2-stam-txt').innerText = `${Math.round(p2.stam)}%`;
+  }
 
-        // 옥타곤 바닥 및 케이지 생성
-        const floorGeo = new THREE.CylinderGeometry(8, 8, 0.5, 8);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a202c, roughness: 0.8 });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.position.y = -0.25;
-        floor.receiveShadow = true;
-        scene.add(floor);
+  renderer.render(scene, camera);
+}
 
-        // 파이터 3D 모델 생성 함수 (휴머노이드)
-        function createFighterModel(colorHex) {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.5 });
-            
-            // 몸통
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.4), mat);
-            torso.position.y = 1.2;
-            torso.castShadow = true;
-            group.add(torso);
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
-            // 머리
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-            head.position.y = 2.0;
-            group.add(head);
-
-            // 팔, 다리 등 관절 구조 추가
-            return group;
-        }
-
-        let playerGroup = createFighterModel(0x3182ce);
-        let opponentGroup = createFighterModel(0xe53e3e);
-        scene.add(playerGroup);
-        scene.add(opponentGroup);
-
-        // 카메라 및 위치 초기화
-        let playerPos = { x: 0, z: 3, rot: 0 };
-        let oppPos = { x: 0, z: -3, rot: Math.PI };
-        let playerHp = 100, oppHp = 100;
-        let walkoutTimer = 0;
-
-        function startMatch() {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('combat-hud').style.display = 'block';
-            document.getElementById('touch-controls').style.display = 'flex';
-            
-            playerGroup.children[0].material.color.setHex(fighters[selectedFighterIdx].color);
-            opponentGroup.children[0].material.color.setHex(fighters[opponentIdx].color);
-
-            playerPos = { x: 0, z: 4, rot: 0 };
-            oppPos = { x: 0, z: -4, rot: Math.PI };
-            playerHp = 100; oppHp = 100;
-            
-            gameState = 'WALKOUT';
-            walkoutTimer = 0;
-            showAnnouncement("WALKOUT TO THE OCTAGON");
-        }
-
-        function showAnnouncement(text) {
-            const el = document.getElementById('announcement');
-            el.innerText = text;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 2500);
-        }
-
-        // 입력 처리
-        const keys = {};
-        window.addEventListener('keydown', e => { keys[e.code] = true; handleActionKey(e.code); });
-        window.addEventListener('keyup', e => { keys[e.code] = false; });
-        function setKey(code, val) { keys[code] = val; }
-
-        function handleActionKey(code) {
-            if(gameState !== 'FIGHT') return;
-            if(code === 'KeyJ' || code === 'Space') { triggerAction('punch'); }
-            if(code === 'KeyK') { triggerAction('kick'); }
-            if(code === 'KeyL' || code === 'KeyE') { triggerAction('wrestle'); }
-        }
-
-        function triggerAction(action) {
-            if(gameState !== 'FIGHT') return;
-            let dist = Math.hypot(playerPos.x - oppPos.x, playerPos.z - oppPos.z);
-            if(action === 'punch' && dist < 2.2) {
-                oppHp -= 8;
-                if(oppHp <= 0) matchOver(true);
-            } else if(action === 'kick' && dist < 2.5) {
-                oppHp -= 12;
-                if(oppHp <= 0) matchOver(true);
-            } else if(action === 'wrestle' && dist < 3.0) {
-                oppHp -= 15;
-                showAnnouncement("대단한 더블렉 테이크다운 성공!");
-                if(oppHp <= 0) matchOver(true);
-            }
-        }
-
-        function matchOver(won) {
-            gameState = 'OVER';
-            if(won) {
-                purse += 3000; streak++;
-                showAnnouncement("VICTORY! ₩3,000 획득");
-            } else {
-                streak = 0;
-                showAnnouncement("DEFEAT...");
-            }
-            updateUI();
-            setTimeout(() => {
-                document.getElementById('main-menu').style.display = 'flex';
-                document.getElementById('combat-hud').style.display = 'none';
-                document.getElementById('touch-controls').style.display = 'none';
-                gameState = 'MENU';
-            }, 3000);
-        }
-
-        // 애니메이션 루프
-        const clock = new THREE.Clock();
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-
-            if(gameState === 'WALKOUT') {
-                walkoutTimer += delta;
-                // 걸어들어오는 연출
-                playerPos.z = THREE.MathUtils.lerp(playerPos.z, 2, delta * 1.5);
-                oppPos.z = THREE.MathUtils.lerp(oppPos.z, -2, delta * 1.5);
-                
-                camera.position.set(0, 4, 7);
-                camera.lookAt(0, 1, 0);
-
-                if(walkoutTimer > 3.0) {
-                    gameState = 'FIGHT';
-                    showAnnouncement("FIGHT!");
-                }
-            } else if(gameState === 'FIGHT') {
-                // 키보드 이동 (WASD)
-                let moveSpeed = 4.0 * delta;
-                if(keys['KeyW']) playerPos.z -= moveSpeed;
-                if(keys['KeyS']) playerPos.z += moveSpeed;
-                if(keys['KeyA']) playerPos.x -= moveSpeed;
-                if(keys['KeyD']) playerPos.x += moveSpeed;
-
-                // 옥타곤 경계 제한
-                let d = Math.hypot(playerPos.x, playerPos.z);
-                if(d > 7.0) { playerPos.x *= 7.0/d; playerPos.z *= 7.0/d; }
-
-                playerGroup.position.set(playerPos.x, 0, playerPos.z);
-                opponentGroup.position.set(oppPos.x, 0, oppPos.z);
-
-                // 상대방을 바라보는 록온(Lock-On) 뷰
-                playerGroup.lookAt(oppPos.x, 0, oppPos.z);
-                opponentGroup.lookAt(playerPos.x, 0, playerPos.z);
-
-                // 록온 3인칭 카메라
-                camera.position.x = playerPos.x + (oppPos.x - playerPos.x) * 0.3;
-                camera.position.z = playerPos.z + 3.5;
-                camera.position.y = 2.2;
-                camera.lookAt(oppPos.x, 1.0, oppPos.z);
-
-                // 체력바 업데이트
-                document.getElementById('p1-hp').style.width = `${Math.max(0, playerHp)}%`;
-                document.getElementById('p2-hp').style.width = `${Math.max(0, oppHp)}%`;
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        updateUI();
-        animate();
-    </script>
+renderLobby();
+animate();
+</script>
 </body>
 </html>
