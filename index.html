@@ -240,7 +240,7 @@
         <div class="event-sub">■ MAIN EVENT · 5 ROUNDS · LOCK-ON VIEW</div>
         <div class="event-vs" id="lobby-vs-title">찰스 올리베이라 VS 하빕 누르마고메도프</div>
         <div class="event-desc">
-          시선 락온 고정 및 실제 UFC 고증 궁극기(<b>R</b>) 모션이 완전히 강화되었습니다. <b>R</b>키를 눌러 화려한 피니시 기술을 작렬하세요!
+          상대방 초점이 완벽 고정되며, 수플렉스나 테이크다운 시 **상대방도 함께 들어올려져 매트에 메어 꽂히는 연동 모션**이 구현되었습니다!
         </div>
         <button class="btn-primary" onclick="startBattle()">옥타곤 경기 시작 (FIGHT)</button>
         <button class="btn-secondary" onclick="openTab('tab-gym', document.querySelectorAll('.nav-tab')[1])">체육관 훈련</button>
@@ -316,7 +316,7 @@
 
   <div id="ground-overlay">
     <div style="font-size:13px; font-weight:900; color:var(--gold);" id="ground-title">GROUND & POUND / SUBMISSION</div>
-    <div style="font-size:11px; color:var(--muted); margin-top:4px;" id="ground-desc">상대를 매트에 누르비고 올라탔습니다! 행동을 선택하세요.</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px;" id="ground-desc">상대를 매트에 누르고 올라탔습니다! 행동을 선택하세요.</div>
     <div id="sub-game-wrap" style="display:none;">
       <div class="sub-track">
         <div id="sub-sweetspot"></div>
@@ -397,9 +397,9 @@ const DEFAULT_STATE = {
   ownedSkills: { onetwo: 1 },
   equippedSkill: 'onetwo'
 };
-let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v6') || 'null') || structuredClone(DEFAULT_STATE);
-function saveState() { localStorage.setItem('untitled_mma_3d_v6', JSON.stringify(state)); }
-function resetSave() { localStorage.removeItem('untitled_mma_3d_v6'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
+let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v7') || 'null') || structuredClone(DEFAULT_STATE);
+function saveState() { localStorage.setItem('untitled_mma_3d_v7', JSON.stringify(state)); }
+function resetSave() { localStorage.removeItem('untitled_mma_3d_v7'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
 
 function getPlayerFighter() { return FIGHTERS.find(f => f.id === state.selectedId) || FIGHTERS[0]; }
 function getEffectiveStats(fighterId) {
@@ -727,7 +727,7 @@ function buildArticulatedFighter(fData, gloveColor) {
   return { root, bodyPivot, headGroup, leftArm, rightArm, leftLeg, rightLeg };
 }
 
-/* ================= 4. 전투 엔진 & 락온 / 궁극기 모션 시스템 ================= */
+/* ================= 4. 전투 엔진 & 연동 레슬링/궁극기 모션 ================= */
 let mode = 'LOBBY';
 let p1Mesh = null, p2Mesh = null;
 let p1 = {}, p2 = {};
@@ -784,13 +784,15 @@ function startBattle() {
     x: 0, z: 2.6, y: 0, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
     stats: getEffectiveStats(f1.id),
     weaving: 0, weaveDir: 1, counterWindow: 0,
-    atkTimer: 0, atkMax: 0.4, atkType: '', sigId: '', comboSide: 0, aiCd: 0
+    atkTimer: 0, atkMax: 0.4, atkType: '', sigId: '', comboSide: 0,
+    reactTimer: 0, reactType: '', aiCd: 0
   };
   p2 = {
     x: 0, z: -2.6, y: 0, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
     stats: f2.stats,
     weaving: 0, weaveDir: 1, counterWindow: 0,
-    atkTimer: 0, atkMax: 0.4, atkType: '', sigId: '', comboSide: 0, aiCd: 1.2
+    atkTimer: 0, atkMax: 0.4, atkType: '', sigId: '', comboSide: 0,
+    reactTimer: 0, reactType: '', aiCd: 1.2
   };
 
   groundState.active = false;
@@ -829,18 +831,24 @@ function playerAttack(type) {
   p1.comboSide = p1.comboSide === 0 ? 1 : 0;
 
   if (type === 'wrestling') {
-    p1.atkMax = 0.75;
-  } else if (type === 'sig') {
     p1.atkMax = 0.85;
+    p2.reactTimer = 0.85;
+    p2.reactType = 'slammed'; // 상대방도 함께 쓰러지는 피격 모션 트리거
+  } else if (type === 'sig') {
+    p1.atkMax = 0.95;
+    p2.reactTimer = 0.95;
+    p2.reactType = 'slammed';
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     p1.sigId = sk.id;
   } else {
     p1.atkMax = 0.36;
+    p2.reactTimer = 0.36;
+    p2.reactType = 'hit';
   }
   p1.atkTimer = p1.atkMax;
 
   const dist = Math.hypot(p2.x - p1.x, p2.z - p1.z);
-  const reach = (type === 'wrestling' || type === 'sig') ? 3.6 : type === 'kick' ? 2.75 : 2.2;
+  const reach = (type === 'wrestling' || type === 'sig') ? 3.8 : type === 'kick' ? 2.75 : 2.2;
 
   const ang = Math.atan2(p2.x - p1.x, p2.z - p1.z);
   if (type === 'wrestling' || type === 'sig') {
@@ -860,16 +868,16 @@ function playerAttack(type) {
     base = st.kick * (p1.comboSide === 0 ? 0.68 : 0.80);
   } else if (type === 'wrestling') {
     triggerGroundControl('p1');
-    callout('치마예프 체인 레슬링 테이크다운 성공!', '#eab308');
+    callout('치마예프 체인 레슬링 테이크다운 & 슬램 성공!', '#eab308');
     return;
   } else if (type === 'bjj') {
     base = st.bjj * 0.68;
   } else if (type === 'sig') {
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     const lv = state.ownedSkills[sk.id] || 1;
-    base = st[sk.type] * 0.82 * sk.mult * (1 + (lv - 1) * 0.12);
+    base = st[sk.type] * 0.85 * sk.mult * (1 + (lv - 1) * 0.12);
     timeScale = 0.35;
-    callout(`★ [${sk.grade}] ${sk.name} 작렬!`, '#eab308');
+    callout(`★ [${sk.grade}] ${sk.name} 연출 작렬!`, '#eab308');
   }
 
   if (p1.counterWindow > 0) {
@@ -882,8 +890,8 @@ function playerAttack(type) {
   p2.hp = Math.max(0, p2.hp - finalDmg);
   hitStopTimer = type === 'sig' ? 0.08 : 0.04;
 
-  p2.x += Math.sin(ang) * (type === 'sig' ? 1.2 : 0.45);
-  p2.z += Math.cos(ang) * (type === 'sig' ? 1.2 : 0.45);
+  p2.x += Math.sin(ang) * (type === 'sig' ? 1.4 : 0.45);
+  p2.z += Math.cos(ang) * (type === 'sig' ? 1.4 : 0.45);
 
   if (type === 'bjj' && p2.hp > 0 && Math.random() < 0.65) {
     triggerGroundControl('p1', true);
@@ -1000,7 +1008,7 @@ function finishBattle(playerWon) {
   }, 2400);
 }
 
-/* ================= 5. 실제 UFC 고증 궁극기 모션 렌더러 ================= */
+/* ================= 5. 연동 피격 모션 & 궁극기 연출 렌더러 ================= */
 const clock = new THREE.Clock();
 
 function clampOctagon(ent) {
@@ -1012,7 +1020,7 @@ function clampOctagon(ent) {
   }
 }
 
-function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
+function animateFighterRig(mesh, f, guarding, isMoving, elapsed, isOpponent) {
   mesh.root.position.set(f.x, f.y, f.z);
   mesh.root.rotation.set(0, 0, 0);
   mesh.bodyPivot.position.set(0, 1.02, 0);
@@ -1047,6 +1055,28 @@ function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
     mesh.rightArm.elbow.rotation.set(-1.75, 0, 0);
   }
 
+  // 상대방이 공격받았을 때 연동 피격 모션 (수플렉스에 잡혀 넘어지거나 펀치에 휘청임)
+  if (isOpponent && f.reactTimer > 0) {
+    const rProg = 1 - (f.reactTimer / 0.85);
+    if (f.reactType === 'slammed') {
+      // 수플렉스나 테이크다운에 당해 공중으로 들렸다가 매트에 꽂히는 연동 모션
+      if (rProg < 0.5) {
+        mesh.root.position.y = Math.sin(rProg * Math.PI) * 1.25;
+        mesh.bodyPivot.rotation.x = -rProg * 2.8;
+      } else {
+        mesh.root.position.y = 0;
+        mesh.bodyPivot.rotation.x = -1.45;
+        mesh.leftArm.shoulder.rotation.x = -2.2;
+        mesh.rightArm.shoulder.rotation.x = -2.2;
+      }
+      return;
+    } else if (f.reactType === 'hit') {
+      mesh.bodyPivot.rotation.y = 0.4 * Math.sin(rProg * Math.PI);
+      return;
+    }
+  }
+
+  // 공격자(또는 궁극기 시전 중인 선수)의 고유 아크로바틱 모션
   if (f.atkTimer > 0) {
     const prog = 1 - (f.atkTimer / f.atkMax);
     const swing = Math.sin(prog * Math.PI);
@@ -1068,39 +1098,35 @@ function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
         mesh.rightLeg.hip.rotation.set(-1.85 * swing, 0, 0.35 * swing);
       }
     } else if (f.atkType === 'wrestling') {
+      // 레슬링 돌진 & 상대를 번쩍 들어 메어 꽂는 모션
       const p1 = Math.min(1, prog * 1.5);
-      mesh.bodyPivot.position.y = 1.02 - 0.4 * p1;
-      mesh.bodyPivot.rotation.x = 0.75 * p1;
+      mesh.bodyPivot.position.y = 1.02 - 0.35 * p1;
+      mesh.bodyPivot.rotation.x = 0.85 * p1;
     } else if (f.atkType === 'sig') {
-      // ★ 장착된 궁극기별 실제 UFC 고증 피니시 모션 연출!
       const sid = f.sigId;
       if (sid === 'showtime' || sid === 'flying_knee') {
-        // 케이지 반동 쇼타임 킥 / 플라잉 니킥 (공중 도약 타격)
         mesh.root.position.y = Math.sin(prog * Math.PI) * 1.5;
         mesh.bodyPivot.rotation.x = -0.55 * swing;
         mesh.bodyPivot.rotation.z = (sid === 'showtime' ? 0.85 : 0) * swing;
         mesh.rightLeg.hip.rotation.set(-2.3 * swing, 0, 0);
         mesh.rightLeg.knee.rotation.x = (sid === 'flying_knee' ? 1.95 : 0.2) * swing;
       } else if (sid === 'wheel_kick' || sid === 'brazilian_kick') {
-        // 360도 스피닝 휠킥 & 브라질리언 하이킥 (상체 회전 후 내리찍기)
         mesh.root.position.y = Math.sin(prog * Math.PI) * 0.65;
         mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
         mesh.bodyPivot.rotation.z = 0.7 * swing;
         mesh.rightLeg.hip.rotation.set(-2.2 * swing, 0, 0.45 * swing);
       } else if (sid === 'flying_armbar' || sid === 'imanari' || sid === 'darce') {
-        // 플라잉 암바 / 이마나리 롤 (공중에서 상대를 덮치며 관절 꺾기 다이빙)
         mesh.root.position.y = Math.sin(prog * Math.PI) * 1.2;
         mesh.root.rotation.x = prog * Math.PI * 2;
         mesh.leftArm.shoulder.rotation.set(-1.9, 0.45, 0);
         mesh.rightArm.shoulder.rotation.set(-1.9, -0.45, 0);
       } else if (sid === 'suplex' || sid === 'double_leg') {
-        // 하이 앰플리튜드 수플렉스 (상대를 완전히 공중으로 뒤로 메어 꽂는 아치 슬램)
+        // 수플렉스: 상체를 뒤로 크게 아치형으로 젖히며 상대를 메어 꽂음
         mesh.root.position.y = Math.sin(prog * Math.PI) * 1.1;
-        mesh.bodyPivot.rotation.x = -1.55 * Math.sin(prog * Math.PI);
-        mesh.leftArm.shoulder.rotation.set(-2.0, 0, 0);
-        mesh.rightArm.shoulder.rotation.set(-2.0, 0, 0);
+        mesh.bodyPivot.rotation.x = -1.65 * Math.sin(prog * Math.PI);
+        mesh.leftArm.shoulder.rotation.set(-2.1, 0, 0);
+        mesh.rightArm.shoulder.rotation.set(-2.1, 0, 0);
       } else {
-        // 스피닝 백피스트 & 원투 오버핸드 연타 콤보
         mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
         mesh.leftArm.shoulder.rotation.set(-1.8 * swing, 0, 0);
         mesh.rightArm.shoulder.rotation.set(-1.8 * swing, 0, 0);
@@ -1136,6 +1162,8 @@ function animate() {
     if (p1.counterWindow > 0) p1.counterWindow -= dt;
     if (p1.atkTimer > 0) p1.atkTimer -= dt;
     if (p2.atkTimer > 0) p2.atkTimer -= dt;
+    if (p1.reactTimer > 0) p1.reactTimer -= dt;
+    if (p2.reactTimer > 0) p2.reactTimer -= dt;
 
     const dx = p2.x - p1.x, dz = p2.z - p1.z;
     const dist = Math.hypot(dx, dz) || 1;
@@ -1163,6 +1191,8 @@ function animate() {
         p2.comboSide = p2.comboSide === 0 ? 1 : 0;
         p2.atkType = Math.random() < 0.7 ? 'boxing' : 'kick';
         p2.atkTimer = 0.36;
+        p1.reactTimer = 0.36;
+        p1.reactType = 'hit';
 
         if (p1.weaving > 0) {
           p1.counterWindow = 1.4;
@@ -1184,16 +1214,16 @@ function animate() {
     clampOctagon(p1);
     clampOctagon(p2);
 
-    // ★ 락온 및 회전 고정: 상대방을 항상 정면으로 주시하도록 lookAt 적용
+    // ★ 시선 고정: 플레이어와 상대가 서로를 정확히 바라보도록 록온 정렬
     p1Mesh.root.position.set(p1.x, p1.y, p1.z);
     p2Mesh.root.position.set(p2.x, p2.y, p2.z);
     p1Mesh.root.lookAt(p2.x, p1.y, p2.z);
     p2Mesh.root.lookAt(p1.x, p2.y, p1.z);
 
-    animateFighterRig(p1Mesh, p1, guarding, p1Moving, clock.elapsedTime);
-    animateFighterRig(p2Mesh, p2, false, p2Moving, clock.elapsedTime + 1.3);
+    animateFighterRig(p1Mesh, p1, guarding, p1Moving, clock.elapsedTime, false);
+    animateFighterRig(p2Mesh, p2, false, p2Moving, clock.elapsedTime + 1.3, true);
 
-    // 록온 3인칭 어깨 너머 카메라
+    // 록온 3인칭 어깨 너머 카메라 (상대방 중심축 항상 주시)
     const camX = p1.x - fx * 3.6 + rx * 0.4;
     const camZ = p1.z - fz * 3.6 + rz * 0.4;
     camera.position.lerp(new THREE.Vector3(camX, 2.3, camZ), 0.18);
