@@ -6,9 +6,9 @@
 <title>UNTITLED MMA 3D — OCTAGON LIVE</title>
 <style>
   :root {
-    --bg-dark: #090b0e;
-    --panel: rgba(15, 19, 26, 0.92);
-    --panel-solid: #0f131a;
+    --bg-dark: #07090c;
+    --panel: rgba(14, 18, 25, 0.92);
+    --panel-solid: #0e1219;
     --border: rgba(255, 255, 255, 0.14);
     --red: #e62343;
     --blue: #2374e6;
@@ -26,7 +26,6 @@
   }
   #game-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
 
-  /* 상단 방송국 스타일 헤더 */
   .broadcast-top {
     position: fixed; top: 10px; left: 12px; right: 12px; z-index: 30;
     display: flex; justify-content: space-between; align-items: center; gap: 8px;
@@ -53,18 +52,17 @@
   }
   .btn-mini:hover { color: #fff; border-color: #fff; }
 
-  /* 로비 컨테이너 */
   #lobby-layer {
     position: fixed; inset: 0; z-index: 25;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 54px 12px 14px;
-    background: radial-gradient(circle at 50% 35%, rgba(9,11,14,0.35), rgba(9,11,14,0.88));
+    background: radial-gradient(circle at 50% 35%, rgba(7,9,12,0.3), rgba(7,9,12,0.9));
   }
   .lobby-shell {
     width: 100%; max-width: 560px; max-height: 100%;
     background: var(--panel); border: 1px solid var(--border);
     border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.75); backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.78); backdrop-filter: blur(10px);
   }
   .nav-tabs {
     display: grid; grid-template-columns: repeat(4, 1fr);
@@ -79,9 +77,8 @@
   .tab-panel { padding: 14px; overflow-y: auto; flex: 1; display: none; }
   .tab-panel.active { display: block; }
 
-  /* 대전 카드 */
   .match-card {
-    background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+    background: rgba(0,0,0,0.42); border: 1px solid var(--border);
     border-radius: 6px; padding: 12px; margin-bottom: 12px;
   }
   .corner-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -99,7 +96,7 @@
   .chip b { color: #fff; }
 
   .event-banner {
-    background: linear-gradient(135deg, rgba(230,35,67,0.14), rgba(15,19,26,0.9));
+    background: linear-gradient(135deg, rgba(230,35,67,0.14), rgba(14,18,25,0.92));
     border: 1px solid rgba(230,35,67,0.35); border-radius: 6px; padding: 14px;
   }
   .event-sub { font-size: 10px; font-weight: 800; color: var(--red); letter-spacing: 1px; margin-bottom: 6px; }
@@ -118,10 +115,9 @@
     font-size: 13px; font-weight: 700; cursor: pointer;
   }
 
-  /* 체육관 & 로스터 & 뽑기 그리드 */
   .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .card-box {
-    background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+    background: rgba(0,0,0,0.42); border: 1px solid var(--border);
     border-radius: 6px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between;
   }
   .card-box.selected { border-color: var(--red); background: rgba(230,35,67,0.12); }
@@ -133,7 +129,6 @@
   .g-A { background: var(--cyan); color: #000; }
   .g-B { background: #4b5563; color: #fff; }
 
-  /* 인게임 전투 HUD */
   #fight-hud { position: fixed; inset: 0; z-index: 20; display: none; pointer-events: none; }
   .fighters-hud {
     position: fixed; top: 48px; left: 12px; right: 12px;
@@ -152,12 +147,11 @@
   .stam-fill { height: 100%; background: var(--gold); width: 100%; }
   .grd-fill { height: 100%; background: var(--cyan); width: 100%; }
 
-  /* 중앙 알림 배너 & 서브미션 미니게임 */
   #center-callout {
     position: fixed; top: 24%; left: 50%; transform: translateX(-50%);
-    font-size: 26px; font-weight: 900; letter-spacing: 1px;
+    font-size: 24px; font-weight: 900; letter-spacing: 0.8px;
     text-shadow: 0 4px 16px rgba(0,0,0,0.95); text-align: center;
-    opacity: 0; transition: opacity 0.15s; z-index: 28;
+    opacity: 0; transition: opacity 0.15s; z-index: 28; white-space: nowrap;
   }
   #sub-minigame {
     position: fixed; top: 42%; left: 50%; transform: translate(-50%, -50%);
@@ -177,7 +171,6 @@
     position: absolute; top: 0; width: 4px; height: 100%; background: #fff;
   }
 
-  /* 하단 스킬 & 모바일/태블릿 조작패드 */
   .bottom-controls {
     position: fixed; bottom: 12px; left: 12px; right: 12px;
     display: flex; justify-content: space-between; align-items: flex-end;
@@ -187,7 +180,7 @@
   .pad-row { display: flex; gap: 6px; justify-content: center; }
   .pad-btn {
     width: 48px; height: 48px; border-radius: 8px;
-    background: rgba(15,19,26,0.82); border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(14,18,25,0.85); border: 1px solid rgba(255,255,255,0.24);
     color: #fff; font-size: 11px; font-weight: 800;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     cursor: pointer; touch-action: manipulation;
@@ -195,7 +188,7 @@
   .pad-btn:active { background: var(--red); border-color: #fff; }
   .pad-btn small { font-size: 9px; color: var(--muted); font-weight: 600; }
   .btn-weave { background: rgba(234,179,8,0.2); border-color: var(--gold); color: var(--gold); width: 102px; }
-  .btn-sig { background: rgba(230,35,67,0.25); border-color: var(--red); width: 102px; }
+  .btn-sig { background: rgba(230,35,67,0.28); border-color: var(--red); width: 102px; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -203,7 +196,6 @@
 
 <canvas id="game-canvas"></canvas>
 
-<!-- 상단 방송국 바 -->
 <div class="broadcast-top">
   <div class="live-badge">
     <div class="live-tag">OCTAGON LIVE</div>
@@ -216,7 +208,6 @@
   </div>
 </div>
 
-<!-- 로비 UI -->
 <div id="lobby-layer">
   <div class="lobby-shell">
     <div class="nav-tabs">
@@ -226,7 +217,6 @@
       <button class="nav-tab" onclick="openTab('tab-roster', this)">선수 로스터</button>
     </div>
 
-    <!-- 1. 옥타곤 대전 -->
     <div id="tab-match" class="tab-panel active">
       <div class="match-card">
         <div class="corner-row">
@@ -248,14 +238,13 @@
         <div class="event-sub">■ MAIN EVENT · 5 ROUNDS · LOCK-ON VIEW</div>
         <div class="event-vs" id="lobby-vs-title">찰스 올리베이라 VS 하빕 누르마고메도프</div>
         <div class="event-desc">
-          상대방에게 시선이 고정되는 록온(Lock-On) 시점입니다. <b>WASD</b>로 스텝을 밟고, 상대 타격 순간 <b>SPACE(위빙)</b>로 회피해 퍼펙트 카운터를 꽂으세요.
+          양손 잽·스트레이트 콤보(<b>J</b>), 좌우 로우·하이킥(<b>K</b>), 더블렉 테이크다운 슬램(<b>L</b>), 그리고 시그니처 궁극기(<b>R</b>)의 풀 3D 모션이 구현되었습니다.
         </div>
         <button class="btn-primary" onclick="startBattle()">옥타곤 경기 시작 (FIGHT)</button>
         <button class="btn-secondary" onclick="openTab('tab-gym', document.querySelectorAll('.nav-tab')[1])">체육관 훈련</button>
       </div>
     </div>
 
-    <!-- 2. 4대 체육관 -->
     <div id="tab-gym" class="tab-panel">
       <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
         선택한 선수의 종목별 기본 능력을 영구 강화합니다. (훈련비 ₩800 / 최대 150)
@@ -263,7 +252,6 @@
       <div class="grid-2" id="gym-list"></div>
     </div>
 
-    <!-- 3. 기술 뽑기 -->
     <div id="tab-gacha" class="tab-panel">
       <div class="match-card" style="text-align:center;">
         <div style="font-size:11px; color:var(--gold); font-weight:800;">SS 2% · S 10% · A 28% · B 60%</div>
@@ -277,14 +265,12 @@
       <div class="grid-2" id="skill-inventory"></div>
     </div>
 
-    <!-- 4. 선수 로스터 -->
     <div id="tab-roster" class="tab-panel">
       <div class="grid-2" id="roster-list"></div>
     </div>
   </div>
 </div>
 
-<!-- 인게임 전투 HUD -->
 <div id="fight-hud">
   <div class="fighters-hud">
     <div class="f-bar-card">
@@ -326,7 +312,6 @@
 
   <div id="center-callout">FIGHT!</div>
 
-  <!-- 주짓수 서브미션 미니게임 -->
   <div id="sub-minigame">
     <div style="font-size:12px; font-weight:900; color:var(--gold);">JIU-JITSU SUBMISSION LOCK!</div>
     <div style="font-size:11px; color:var(--muted);">초록 구간에서 [U] 또는 탭하여 관절기 완성!</div>
@@ -337,7 +322,6 @@
     <button class="btn-primary" style="padding:8px;" onclick="attemptSubLock()">관절기 조이기! [U]</button>
   </div>
 
-  <!-- 하단 조작패드 -->
   <div class="bottom-controls">
     <div class="dpad-box">
       <div class="pad-row"><button class="pad-btn" onpointerdown="keys.KeyW=true" onpointerup="keys.KeyW=false" onpointerleave="keys.KeyW=false">W<small>전진</small></button></div>
@@ -353,11 +337,11 @@
 
     <div class="action-box">
       <div class="pad-row">
-        <button class="pad-btn" onclick="playerAttack('boxing')">J<small>복싱</small></button>
-        <button class="pad-btn" onclick="playerAttack('kick')">K<small>킥</small></button>
+        <button class="pad-btn" onclick="playerAttack('boxing')">J<small>양손복싱</small></button>
+        <button class="pad-btn" onclick="playerAttack('kick')">K<small>양발킥</small></button>
       </div>
       <div class="pad-row">
-        <button class="pad-btn" onclick="playerAttack('wrestling')">L<small>레슬링</small></button>
+        <button class="pad-btn" onclick="playerAttack('wrestling')">L<small>테이크다운</small></button>
         <button class="pad-btn" onclick="playerAttack('bjj')">U<small>주짓수</small></button>
       </div>
       <div class="pad-row">
@@ -369,17 +353,17 @@
 </div>
 
 <script>
-/* ================= 1. 데이터 및 로스터 ================= */
+/* ================= 1. 로스터 및 스킬 데이터 ================= */
 const FIGHTERS = [
-  { id:'oliveira', name:'찰스 올리베이라', nick:'Do Bronx', style:'주짓수 스페셜리스트', stats:{boxing:88, kick:89, wrestling:85, bjj:98}, shorts:0xffffff, trim:0xeab308, hair:0xfde047, beard:true, scale:[1.0,1.02,1.0] },
-  { id:'merab', name:'메랍 드발리슈빌리', nick:'The Machine', style:'무한 체력 레슬러', stats:{boxing:86, kick:84, wrestling:98, bjj:87}, shorts:0x1d4ed8, trim:0xffffff, hair:0x1f2937, beard:true, scale:[0.98,0.94,0.98] },
-  { id:'topuria', name:'일리아 토푸리아', nick:'El Matador', style:'복싱 & 그레코로만', stats:{boxing:97, kick:90, wrestling:91, bjj:92}, shorts:0xdc2626, trim:0xfacc15, hair:0x111827, beard:true, scale:[1.02,0.95,1.02] },
-  { id:'mcgregor', name:'코너 맥그리거', nick:'The Notorious', style:'사우스포 카운터 펀처', stats:{boxing:96, kick:92, wrestling:78, bjj:81}, shorts:0x059669, trim:0xfacc15, hair:0xb45309, beard:true, scale:[1.03,0.98,1.0] },
-  { id:'khamzat', name:'함자트 치마예프', nick:'Borz', style:'압도적 체인 레슬링', stats:{boxing:89, kick:85, wrestling:97, bjj:94}, shorts:0x111827, trim:0xef4444, hair:0x111827, beard:true, scale:[1.05,1.06,1.04] },
-  { id:'aldo', name:'조제 알도', nick:'Junior', style:'레그킥 & 테이크다운 방어', stats:{boxing:92, kick:96, wrestling:88, bjj:89}, shorts:0x16a34a, trim:0xfacc15, hair:0x111827, beard:false, scale:[1.0,0.95,1.0] },
-  { id:'khabib', name:'하빕 누르마고메도프', nick:'The Eagle', style:'삼보 & 그라운드 압박', stats:{boxing:84, kick:82, wrestling:99, bjj:96}, shorts:0x111827, trim:0xffffff, hair:0x111827, beard:true, scale:[1.04,1.0,1.04] },
-  { id:'jones', name:'존 존스', nick:'Bones', style:'올라운드 GOAT & 긴 리치', stats:{boxing:93, kick:95, wrestling:95, bjj:95}, shorts:0x991b1b, trim:0xffffff, hair:0x111827, beard:true, scale:[1.06,1.11,1.05] },
-  { id:'ngannou', name:'프란시스 은가누', nick:'The Predator', style:'헤비급 원펀치 KO', stats:{boxing:99, kick:91, wrestling:86, bjj:76}, shorts:0x1f2937, trim:0xeab308, hair:0x111827, beard:true, scale:[1.18,1.10,1.16] }
+  { id:'oliveira', name:'찰스 올리베이라', nick:'Do Bronx', style:'주짓수 스페셜리스트', stats:{boxing:88, kick:89, wrestling:85, bjj:98}, skin:0xd99b72, shorts:0xffffff, trim:0xeab308, hair:0xfde047, beard:true, scale:[1.0,1.02,1.0] },
+  { id:'merab', name:'메랍 드발리슈빌리', nick:'The Machine', style:'무한 체력 레슬러', stats:{boxing:86, kick:84, wrestling:98, bjj:87}, skin:0xd59770, shorts:0x1d4ed8, trim:0xffffff, hair:0x1f2937, beard:true, scale:[0.98,0.94,0.98] },
+  { id:'topuria', name:'일리아 토푸리아', nick:'El Matador', style:'복싱 & 그레코로만', stats:{boxing:97, kick:90, wrestling:91, bjj:92}, skin:0xdcb08a, shorts:0xdc2626, trim:0xfacc15, hair:0x111827, beard:true, scale:[1.02,0.95,1.02] },
+  { id:'mcgregor', name:'코너 맥그리거', nick:'The Notorious', style:'사우스포 카운터 펀처', stats:{boxing:96, kick:92, wrestling:78, bjj:81}, skin:0xe2b694, shorts:0x059669, trim:0xfacc15, hair:0xb45309, beard:true, scale:[1.03,0.98,1.0] },
+  { id:'khamzat', name:'함자트 치마예프', nick:'Borz', style:'압도적 체인 레슬링', stats:{boxing:89, kick:85, wrestling:97, bjj:94}, skin:0xdcb08a, shorts:0x111827, trim:0xef4444, hair:0x111827, beard:true, scale:[1.05,1.06,1.04] },
+  { id:'aldo', name:'조제 알도', nick:'Junior', style:'레그킥 & 테이크다운 방어', stats:{boxing:92, kick:96, wrestling:88, bjj:89}, skin:0xb97a52, shorts:0x16a34a, trim:0xfacc15, hair:0x111827, beard:false, scale:[1.0,0.95,1.0] },
+  { id:'khabib', name:'하빕 누르마고메도프', nick:'The Eagle', style:'삼보 & 그라운드 압박', stats:{boxing:84, kick:82, wrestling:99, bjj:96}, skin:0xd8a27a, shorts:0x111827, trim:0xffffff, hair:0x111827, beard:true, scale:[1.04,1.0,1.04] },
+  { id:'jones', name:'존 존스', nick:'Bones', style:'올라운드 GOAT & 긴 리치', stats:{boxing:93, kick:95, wrestling:95, bjj:95}, skin:0x6e432c, shorts:0x991b1b, trim:0xffffff, hair:0x111827, beard:true, scale:[1.06,1.11,1.05] },
+  { id:'ngannou', name:'프란시스 은가누', nick:'The Predator', style:'헤비급 원펀치 KO', stats:{boxing:99, kick:91, wrestling:86, bjj:76}, skin:0x4e2e1e, shorts:0x1f2937, trim:0xeab308, hair:0x111827, beard:true, scale:[1.18,1.10,1.16] }
 ];
 
 const SKILLS_POOL = [
@@ -405,9 +389,9 @@ const DEFAULT_STATE = {
   ownedSkills: { onetwo: 1 },
   equippedSkill: 'onetwo'
 };
-let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v2') || 'null') || structuredClone(DEFAULT_STATE);
-function saveState() { localStorage.setItem('untitled_mma_3d_v2', JSON.stringify(state)); }
-function resetSave() { localStorage.removeItem('untitled_mma_3d_v2'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
+let state = JSON.parse(localStorage.getItem('untitled_mma_3d_v3') || 'null') || structuredClone(DEFAULT_STATE);
+function saveState() { localStorage.setItem('untitled_mma_3d_v3', JSON.stringify(state)); }
+function resetSave() { localStorage.removeItem('untitled_mma_3d_v3'); state = structuredClone(DEFAULT_STATE); renderLobby(); }
 
 function getPlayerFighter() { return FIGHTERS.find(f => f.id === state.selectedId) || FIGHTERS[0]; }
 function getEffectiveStats(fighterId) {
@@ -464,10 +448,9 @@ function renderLobby() {
   `;
   document.getElementById('lobby-vs-title').innerText = `${p1.name} VS ${p2.name}`;
 
-  // 체육관
   const gyms = [
-    { key:'boxing', title:'복싱 체육관', desc:'펀치 위력 & 연타 속도 강화' },
-    { key:'kick', title:'무에타이 체육관', desc:'하이/로우킥 위력 & 리치 강화' },
+    { key:'boxing', title:'복싱 체육관', desc:'양손 펀치 위력 & 연타 속도 강화' },
+    { key:'kick', title:'무에타이 체육관', desc:'양발 하이/로우킥 위력 & 리치 강화' },
     { key:'wrestling', title:'레슬링 체육관', desc:'테이크다운 돌진 & 슬램 데미지' },
     { key:'bjj', title:'주짓수 체육관', desc:'서브미션 판정 구간 & 초크 위력' }
   ];
@@ -482,7 +465,6 @@ function renderLobby() {
     </div>
   `).join('');
 
-  // 로스터
   document.getElementById('roster-list').innerHTML = FIGHTERS.map(f => {
     const st = getEffectiveStats(f.id);
     return `
@@ -494,7 +476,6 @@ function renderLobby() {
     `;
   }).join('');
 
-  // 보유 기술
   document.getElementById('skill-inventory').innerHTML = Object.entries(state.ownedSkills).map(([sid, lv]) => {
     const sk = SKILLS_POOL.find(x => x.id === sid);
     if (!sk) return '';
@@ -544,130 +525,218 @@ function drawSkill() {
 
 function equipSkill(sid) { state.equippedSkill = sid; saveState(); renderLobby(); }
 
-/* ================= 3. Three.js 3D 옥타곤 & 관절 파이터 ================= */
+/* ================= 3. 고퀄리티 3D 옥타곤 & 다관절 파이터 ================= */
 const canvas = document.getElementById('game-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x06080c);
-scene.fog = new THREE.FogExp2(0x06080c, 0.022);
+scene.background = new THREE.Color(0x05070a);
+scene.fog = new THREE.FogExp2(0x05070a, 0.02);
 
-const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 120);
+const camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 130);
 camera.position.set(0, 4.2, 9.5);
 
-// 아레나 조명
-scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-const spotMain = new THREE.SpotLight(0xffffff, 1.4, 45, Math.PI / 4, 0.35);
-spotMain.position.set(0, 16, 0);
-spotMain.castShadow = true;
-scene.add(spotMain);
+// 아레나 3점 조명 & 스포트라이트
+scene.add(new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.55));
+const mainSpot = new THREE.SpotLight(0xffffff, 1.55, 45, Math.PI / 4, 0.4);
+mainSpot.position.set(0, 17, 0);
+mainSpot.castShadow = true;
+mainSpot.shadow.mapSize.set(1024, 1024);
+scene.add(mainSpot);
 
-const redRim = new THREE.PointLight(0xe62343, 1.1, 18);
-redRim.position.set(-7, 4, 5);
+const redRim = new THREE.PointLight(0xe62343, 1.2, 20);
+redRim.position.set(-7.5, 4.5, 5.5);
 scene.add(redRim);
 
-const blueRim = new THREE.PointLight(0x2374e6, 1.1, 18);
-blueRim.position.set(7, 4, -5);
+const blueRim = new THREE.PointLight(0x2374e6, 1.2, 20);
+blueRim.position.set(7.5, 4.5, -5.5);
 scene.add(blueRim);
 
-// 8각 옥타곤 매트 & 펜스 기둥
+// 8각 옥타곤 매트, 테두리 쿠션, 철망 와이어
 const OCT_RADIUS = 7.6;
-const matGeo = new THREE.CylinderGeometry(OCT_RADIUS, OCT_RADIUS + 0.3, 0.6, 8);
-const matMesh = new THREE.Mesh(matGeo, new THREE.MeshStandardMaterial({ color: 0x1b222c, roughness: 0.85 }));
-matMesh.position.y = -0.3;
+const matMesh = new THREE.Mesh(
+  new THREE.CylinderGeometry(OCT_RADIUS, OCT_RADIUS + 0.35, 0.65, 8),
+  new THREE.MeshStandardMaterial({ color: 0x1e2530, roughness: 0.85, metalness: 0.08 })
+);
+matMesh.position.y = -0.325;
 matMesh.receiveShadow = true;
 scene.add(matMesh);
 
-const innerRing = new THREE.Mesh(
-  new THREE.RingGeometry(4.6, 4.85, 8),
+const outerTrim = new THREE.Mesh(
+  new THREE.RingGeometry(OCT_RADIUS - 0.35, OCT_RADIUS, 8),
+  new THREE.MeshStandardMaterial({ color: 0x0f131a, roughness: 0.6 })
+);
+outerTrim.rotation.x = -Math.PI / 2;
+outerTrim.position.y = 0.01;
+scene.add(outerTrim);
+
+const centerLogo = new THREE.Mesh(
+  new THREE.RingGeometry(2.1, 2.35, 8),
   new THREE.MeshBasicMaterial({ color: 0xe62343, side: THREE.DoubleSide })
 );
-innerRing.rotation.x = -Math.PI / 2;
-innerRing.position.y = 0.01;
-scene.add(innerRing);
+centerLogo.rotation.x = -Math.PI / 2;
+centerLogo.position.y = 0.012;
+scene.add(centerLogo);
 
+// 8개 코너 포스트 & 반투명 철망 펜스
+const fenceMat = new THREE.MeshBasicMaterial({ color: 0x64748b, wireframe: true, transparent: true, opacity: 0.16 });
 for (let i = 0; i < 8; i++) {
-  const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+  const a1 = (i / 8) * Math.PI * 2 + Math.PI / 8;
+  const a2 = ((i + 1) / 8) * Math.PI * 2 + Math.PI / 8;
+  const x1 = Math.cos(a1) * (OCT_RADIUS - 0.15), z1 = Math.sin(a1) * (OCT_RADIUS - 0.15);
+  const x2 = Math.cos(a2) * (OCT_RADIUS - 0.15), z2 = Math.sin(a2) * (OCT_RADIUS - 0.15);
+
   const post = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.14, 0.14, 2.3, 8),
-    new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xe62343 : 0x2374e6, roughness: 0.4 })
+    new THREE.CylinderGeometry(0.15, 0.15, 2.35, 10),
+    new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xe62343 : 0x2374e6, roughness: 0.35 })
   );
-  post.position.set(Math.cos(a) * (OCT_RADIUS - 0.15), 1.15, Math.sin(a) * (OCT_RADIUS - 0.15));
+  post.position.set(x1, 1.175, z1);
   scene.add(post);
+
+  const segLen = Math.hypot(x2 - x1, z2 - z1);
+  const panel = new THREE.Mesh(new THREE.PlaneGeometry(segLen, 2.1, 12, 6), fenceMat);
+  panel.position.set((x1 + x2) / 2, 1.12, (z1 + z2) / 2);
+  panel.lookAt(0, 1.12, 0);
+  scene.add(panel);
 }
 
-// 관절형 휴머노이드 파이터 빌더
+// 다관절(어깨-팔꿈치-글러브, 고관절-무릎-정강이) 고퀄리티 파이터 빌더
 function buildArticulatedFighter(fData, gloveColor) {
   const root = new THREE.Group();
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xd99b72, roughness: 0.55 });
-  const shortsMat = new THREE.MeshStandardMaterial({ color: fData.shorts, roughness: 0.6 });
-  const gloveMat = new THREE.MeshStandardMaterial({ color: gloveColor, roughness: 0.35 });
+  const skinMat = new THREE.MeshStandardMaterial({ color: fData.skin, roughness: 0.48, metalness: 0.05 });
+  const shortsMat = new THREE.MeshStandardMaterial({ color: fData.shorts, roughness: 0.55 });
+  const trimMat = new THREE.MeshStandardMaterial({ color: fData.trim, roughness: 0.4 });
+  const gloveMat = new THREE.MeshStandardMaterial({ color: gloveColor, roughness: 0.3, metalness: 0.1 });
 
   const bodyPivot = new THREE.Group();
-  bodyPivot.position.y = 1.05;
+  bodyPivot.position.y = 1.02;
   root.add(bodyPivot);
 
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.88, 0.36), skinMat);
-  torso.position.y = 0.44;
-  torso.castShadow = true;
-  bodyPivot.add(torso);
+  // 역삼각형 상체 + 흉근/복근 디테일
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.52, 0.38), skinMat);
+  chest.position.y = 0.62;
+  chest.castShadow = true;
+  bodyPivot.add(chest);
 
-  const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.36, 0.38), shortsMat);
-  pelvis.position.y = -0.05;
+  const abs = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.42, 0.33), skinMat);
+  abs.position.y = 0.22;
+  abs.castShadow = true;
+  bodyPivot.add(abs);
+
+  // 파이트 쇼츠 & 사이드 스트라이프
+  const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.38, 0.37), shortsMat);
+  pelvis.position.y = -0.06;
+  pelvis.castShadow = true;
   bodyPivot.add(pelvis);
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), skinMat);
-  head.position.y = 1.08;
+  const belt = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.07, 0.39), trimMat);
+  belt.position.y = 0.11;
+  bodyPivot.add(belt);
+
+  // 머리, 헤어, 수염
+  const headGroup = new THREE.Group();
+  headGroup.position.y = 1.12;
+  bodyPivot.add(headGroup);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 18, 18), skinMat);
+  head.scale.set(0.95, 1.08, 1.0);
   head.castShadow = true;
-  bodyPivot.add(head);
+  headGroup.add(head);
 
   if (fData.hair) {
     const hair = new THREE.Mesh(
-      new THREE.SphereGeometry(0.248, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.55),
-      new THREE.MeshStandardMaterial({ color: fData.hair, roughness: 0.8 })
+      new THREE.SphereGeometry(0.238, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.56),
+      new THREE.MeshStandardMaterial({ color: fData.hair, roughness: 0.85 })
     );
-    hair.position.y = 1.09;
-    bodyPivot.add(hair);
+    hair.position.y = 0.02;
+    headGroup.add(hair);
+  }
+  if (fData.beard) {
+    const beard = new THREE.Mesh(
+      new THREE.SphereGeometry(0.225, 14, 14, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45),
+      new THREE.MeshStandardMaterial({ color: fData.hair || 0x111827, roughness: 0.9 })
+    );
+    beard.position.set(0, -0.03, 0.02);
+    headGroup.add(beard);
   }
 
-  function makeLimb(w, h, colorMat, x, y) {
-    const piv = new THREE.Group();
-    piv.position.set(x, y, 0);
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), colorMat);
-    mesh.position.y = -h / 2;
-    mesh.castShadow = true;
-    piv.add(mesh);
-    return piv;
+  // 상완-전완-MMA 오픈핑거 글러브
+  function makeArm(side) {
+    const shoulder = new THREE.Group();
+    shoulder.position.set(side * 0.46, 0.82, 0);
+
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.095, 0.36, 10), skinMat);
+    upper.position.y = -0.18;
+    upper.castShadow = true;
+    shoulder.add(upper);
+
+    const elbow = new THREE.Group();
+    elbow.position.y = -0.36;
+    shoulder.add(elbow);
+
+    const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.08, 0.34, 10), skinMat);
+    fore.position.y = -0.17;
+    fore.castShadow = true;
+    elbow.add(fore);
+
+    const glove = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.19), gloveMat);
+    glove.position.set(0, -0.36, 0.02);
+    glove.castShadow = true;
+    elbow.add(glove);
+
+    return { shoulder, elbow };
   }
 
-  const leftArm = makeLimb(0.2, 0.68, skinMat, -0.46, 0.82);
-  const rightArm = makeLimb(0.2, 0.68, skinMat, 0.46, 0.82);
-  const lGlove = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), gloveMat);
-  lGlove.position.y = -0.68; leftArm.add(lGlove);
-  const rGlove = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), gloveMat);
-  rGlove.position.y = -0.68; rightArm.add(rGlove);
-  bodyPivot.add(leftArm, rightArm);
+  // 허벅지-무릎-정강이-발
+  function makeLeg(side) {
+    const hip = new THREE.Group();
+    hip.position.set(side * 0.19, 0.94, 0);
 
-  const leftLeg = makeLimb(0.24, 0.95, skinMat, -0.2, 0.95);
-  const rightLeg = makeLimb(0.24, 0.95, skinMat, 0.2, 0.95);
-  root.add(leftLeg, rightLeg);
+    const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.115, 0.48, 10), skinMat);
+    thigh.position.y = -0.24;
+    thigh.castShadow = true;
+    hip.add(thigh);
+
+    const knee = new THREE.Group();
+    knee.position.y = -0.48;
+    hip.add(knee);
+
+    const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.085, 0.48, 10), skinMat);
+    shin.position.y = -0.24;
+    shin.castShadow = true;
+    knee.add(shin);
+
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.26), skinMat);
+    foot.position.set(0, -0.48, 0.06);
+    knee.add(foot);
+
+    return { hip, knee };
+  }
+
+  const leftArm = makeArm(-1);
+  const rightArm = makeArm(1);
+  bodyPivot.add(leftArm.shoulder, rightArm.shoulder);
+
+  const leftLeg = makeLeg(-1);
+  const rightLeg = makeLeg(1);
+  root.add(leftLeg.hip, rightLeg.hip);
 
   root.scale.set(...fData.scale);
-  return { root, bodyPivot, leftArm, rightArm, leftLeg, rightLeg };
+  return { root, bodyPivot, headGroup, leftArm, rightArm, leftLeg, rightLeg };
 }
 
-/* ================= 4. 전투 엔진 & 록온 카메라 ================= */
-let mode = 'LOBBY'; // LOBBY, FIGHT, OVER
+/* ================= 4. 전투 엔진 & 양손/양발/레슬링/궁극기 모션 ================= */
+let mode = 'LOBBY';
 let p1Mesh = null, p2Mesh = null;
 let p1 = {}, p2 = {};
 let keys = {};
 let timeScale = 1.0;
 let hitStopTimer = 0;
 
-// 주짓수 서브미션 미니게임 상태
 let subGame = { active: false, pos: 0, dir: 1, sweetStart: 35, sweetWidth: 26, dmg: 0 };
 
 window.addEventListener('keydown', e => {
@@ -689,7 +758,7 @@ function callout(text, color = '#eab308') {
   el.style.color = color;
   el.style.opacity = '1';
   clearTimeout(el._t);
-  el._t = setTimeout(() => { el.style.opacity = '0'; }, 1100);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 1150);
 }
 
 function startBattle() {
@@ -706,14 +775,20 @@ function startBattle() {
   scene.add(p1Mesh.root, p2Mesh.root);
 
   p1 = {
-    x: 0, z: 2.6, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
+    x: 0, z: 2.6, y: 0, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
     stats: getEffectiveStats(f1.id),
-    weaving: 0, counterWindow: 0, atkTimer: 0, atkType: '', aiCd: 0
+    weaving: 0, weaveDir: 1, counterWindow: 0,
+    atkTimer: 0, atkMax: 0.4, atkType: '', sigId: '',
+    comboSide: 0, // 0: 왼손/왼발, 1: 오른손/오른발 번갈아 사용
+    slammedTimer: 0, aiCd: 0
   };
   p2 = {
-    x: 0, z: -2.6, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
+    x: 0, z: -2.6, y: 0, hp: 1000, maxHp: 1000, stam: 100, grd: 100,
     stats: f2.stats,
-    weaving: 0, counterWindow: 0, atkTimer: 0, atkType: '', aiCd: 1.0
+    weaving: 0, weaveDir: 1, counterWindow: 0,
+    atkTimer: 0, atkMax: 0.4, atkType: '', sigId: '',
+    comboSide: 0,
+    slammedTimer: 0, aiCd: 1.0
   };
 
   const eq = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
@@ -726,51 +801,77 @@ function startBattle() {
 }
 
 function doWeave() {
-  if (mode !== 'FIGHT' || p1.weaving > 0 || p1.stam < 14) return;
+  if (mode !== 'FIGHT' || p1.weaving > 0 || p1.stam < 14 || p1.slammedTimer > 0) return;
   p1.stam -= 14;
-  p1.weaving = 0.36;
-  // 방향키 입력 쪽으로 스텝 회피
+  p1.weaving = 0.38;
   const dx = p2.x - p1.x, dz = p2.z - p1.z;
   const dist = Math.hypot(dx, dz) || 1;
   const rx = -dz / dist, rz = dx / dist;
   const side = keys.KeyA ? -1 : keys.KeyD ? 1 : (Math.random() < 0.5 ? -1 : 1);
+  p1.weaveDir = side;
   p1.x += rx * side * 1.15;
   p1.z += rz * side * 1.15;
 }
 
 function playerAttack(type) {
-  if (mode !== 'FIGHT' || p1.atkTimer > 0 || p1.weaving > 0 || subGame.active) return;
-  const cost = type === 'sig' ? 32 : type === 'wrestling' ? 22 : 14;
+  if (mode !== 'FIGHT' || p1.atkTimer > 0 || p1.weaving > 0 || p1.slammedTimer > 0 || subGame.active) return;
+  const cost = type === 'sig' ? 32 : type === 'wrestling' ? 22 : 13;
   if (p1.stam < cost) { callout('스태미나 부족!', '#9ca3af'); return; }
 
   p1.stam -= cost;
-  p1.atkTimer = 0.38;
   p1.atkType = type;
+  // 양손(잽->스트레이트/훅), 양발(스위치 왼발킥->오른발 하이킥) 교차 전환
+  p1.comboSide = p1.comboSide === 0 ? 1 : 0;
+
+  // 기술별 전용 모션 지속 시간 설정
+  if (type === 'wrestling') {
+    p1.atkMax = 0.68;
+  } else if (type === 'sig') {
+    p1.atkMax = 0.78;
+    const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
+    p1.sigId = sk.id;
+  } else {
+    p1.atkMax = 0.36;
+  }
+  p1.atkTimer = p1.atkMax;
 
   const dist = Math.hypot(p2.x - p1.x, p2.z - p1.z);
-  const reach = type === 'kick' || type === 'wrestling' || type === 'sig' ? 2.75 : 2.15;
+  const reach = (type === 'wrestling' || type === 'sig') ? 3.2 : type === 'kick' ? 2.75 : 2.2;
 
-  // 레슬링 전진 돌진
-  if (type === 'wrestling' || type === 'sig') {
-    const ang = Math.atan2(p2.x - p1.x, p2.z - p1.z);
-    p1.x += Math.sin(ang) * 0.95;
-    p1.z += Math.cos(ang) * 0.95;
+  // 레슬링 & 궁극기 전방 고속 돌진
+  const ang = Math.atan2(p2.x - p1.x, p2.z - p1.z);
+  if (type === 'wrestling') {
+    p1.x += Math.sin(ang) * Math.min(1.5, Math.max(0.4, dist - 0.9));
+    p1.z += Math.cos(ang) * Math.min(1.5, Math.max(0.4, dist - 0.9));
+  } else if (type === 'sig') {
+    p1.x += Math.sin(ang) * Math.min(1.8, Math.max(0.5, dist - 1.0));
+    p1.z += Math.cos(ang) * Math.min(1.8, Math.max(0.5, dist - 1.0));
   }
 
   if (dist > reach) return;
 
-  // 기본 데미지 계산
   const st = p1.stats;
   let base = 42;
   let mult = 1.0;
-  if (type === 'boxing') base = st.boxing * 0.58;
-  else if (type === 'kick') base = st.kick * 0.72;
-  else if (type === 'wrestling') base = st.wrestling * 0.85;
-  else if (type === 'bjj') base = st.bjj * 0.68;
-  else if (type === 'sig') {
+
+  if (type === 'boxing') {
+    // 왼손 잽(빠름) -> 오른손 스트레이트/훅(강함)
+    base = st.boxing * (p1.comboSide === 0 ? 0.52 : 0.68);
+  } else if (type === 'kick') {
+    // 왼발 스위치킥 -> 오른발 파워킥
+    base = st.kick * (p1.comboSide === 0 ? 0.68 : 0.80);
+  } else if (type === 'wrestling') {
+    base = st.wrestling * 0.92;
+    p2.slammedTimer = 0.65; // 상대가 들렸다가 매트에 꽂히는 모션 트리거
+    callout('DOUBLE-LEG TAKEDOWN SLAM!', '#eab308');
+  } else if (type === 'bjj') {
+    base = st.bjj * 0.68;
+  } else if (type === 'sig') {
     const sk = SKILLS_POOL.find(s => s.id === state.equippedSkill) || SKILLS_POOL[9];
     const lv = state.ownedSkills[sk.id] || 1;
-    base = st[sk.type] * 0.75 * sk.mult * (1 + (lv - 1) * 0.12);
+    base = st[sk.type] * 0.78 * sk.mult * (1 + (lv - 1) * 0.12);
+    p2.slammedTimer = 0.72;
+    timeScale = 0.45; // 궁극기 임팩트 슬로우모션
     callout(`★ ${sk.name}!`, '#eab308');
   }
 
@@ -782,14 +883,12 @@ function playerAttack(type) {
 
   const finalDmg = Math.round(base * mult);
   p2.hp = Math.max(0, p2.hp - finalDmg);
-  hitStopTimer = 0.045;
+  hitStopTimer = (type === 'wrestling' || type === 'sig') ? 0.065 : 0.04;
 
-  // 넉백
-  const pushAng = Math.atan2(p2.x - p1.x, p2.z - p1.z);
-  p2.x += Math.sin(pushAng) * (type === 'wrestling' ? 1.1 : 0.45);
-  p2.z += Math.cos(pushAng) * (type === 'wrestling' ? 1.1 : 0.45);
+  // 타격 넉백
+  p2.x += Math.sin(ang) * (type === 'wrestling' || type === 'sig' ? 1.35 : 0.45);
+  p2.z += Math.cos(ang) * (type === 'wrestling' || type === 'sig' ? 1.35 : 0.45);
 
-  // 주짓수 정타 시 서브미션 미니게임 발동
   if (type === 'bjj' && p2.hp > 0 && Math.random() < 0.65) {
     openSubMinigame(Math.round(st.bjj * 1.45), st.bjj);
   }
@@ -817,6 +916,7 @@ function attemptSubLock() {
   document.getElementById('sub-minigame').style.display = 'none';
   if (subGame.pos >= subGame.sweetStart && subGame.pos <= subGame.sweetStart + subGame.sweetWidth) {
     p2.hp = Math.max(0, p2.hp - subGame.dmg);
+    p2.slammedTimer = 0.6;
     callout(`TAP OUT! 서브미션 성공 (-${subGame.dmg})`, '#10b981');
     if (p2.hp <= 0) finishBattle(true);
   } else {
@@ -846,15 +946,184 @@ function finishBattle(playerWon) {
   }, 2400);
 }
 
-/* ================= 5. 메인 루프 & 관절 애니메이션 ================= */
+/* ================= 5. 관절 키프레임 애니메이션 & 메인 루프 ================= */
 const clock = new THREE.Clock();
 
 function clampOctagon(ent) {
   const d = Math.hypot(ent.x, ent.z);
-  const maxR = OCT_RADIUS - 0.7;
+  const maxR = OCT_RADIUS - 0.75;
   if (d > maxR) {
     ent.x = (ent.x / d) * maxR;
     ent.z = (ent.z / d) * maxR;
+  }
+}
+
+// 파이터의 양손·양발·레슬링 슬램·궁극기 모션을 실시간으로 관절에 적용
+function animateFighterRig(mesh, f, guarding, isMoving, elapsed) {
+  // 기본 자세 초기화
+  mesh.root.position.set(f.x, f.y, f.z);
+  mesh.root.rotation.x = 0;
+  mesh.root.rotation.z = 0;
+  mesh.bodyPivot.position.set(0, 1.02, 0);
+  mesh.bodyPivot.rotation.set(0, 0, 0);
+
+  // 기본 파이팅 가드 포즈
+  const idleBob = Math.sin(elapsed * 6) * 0.025;
+  mesh.bodyPivot.position.y = 1.02 + idleBob;
+  mesh.leftArm.shoulder.rotation.set(-0.85, 0.25, -0.2);
+  mesh.leftArm.elbow.rotation.set(-1.35, 0, 0);
+  mesh.rightArm.shoulder.rotation.set(-0.95, -0.25, 0.2);
+  mesh.rightArm.elbow.rotation.set(-1.45, 0, 0);
+
+  const walkSwing = isMoving ? Math.sin(elapsed * 14) * 0.45 : 0;
+  mesh.leftLeg.hip.rotation.set(walkSwing, 0, 0);
+  mesh.leftLeg.knee.rotation.set(isMoving ? Math.abs(walkSwing) * 0.5 : 0.08, 0, 0);
+  mesh.rightLeg.hip.rotation.set(-walkSwing, 0, 0);
+  mesh.rightLeg.knee.rotation.set(isMoving ? Math.abs(walkSwing) * 0.5 : 0.08, 0, 0);
+
+  // 1) 슬램 당해서 공중에 들렸다가 매트에 꽂히는 피격 모션
+  if (f.slammedTimer > 0) {
+    const p = 1 - (f.slammedTimer / 0.65); // 0 -> 1
+    if (p < 0.5) {
+      // 공중으로 들어올려짐
+      mesh.root.position.y = Math.sin(p * Math.PI) * 1.15;
+      mesh.root.rotation.x = -p * 2.6;
+    } else {
+      // 매트에 꽂혀 바운스
+      mesh.root.position.y = Math.max(0, Math.sin((1 - p) * Math.PI) * 0.25);
+      mesh.root.rotation.x = -1.35 * (1 - (p - 0.5) * 1.6);
+    }
+    mesh.leftArm.shoulder.rotation.x = -2.2;
+    mesh.rightArm.shoulder.rotation.x = -2.2;
+    return;
+  }
+
+  // 2) 위빙 회피 모션
+  if (f.weaving > 0) {
+    mesh.bodyPivot.position.y = 0.72;
+    mesh.bodyPivot.rotation.x = 0.48;
+    mesh.bodyPivot.rotation.z = f.weaveDir * 0.55;
+    mesh.leftLeg.knee.rotation.x = 0.55;
+    mesh.rightLeg.knee.rotation.x = 0.55;
+    return;
+  }
+
+  // 3) 하이 가드 모션
+  if (guarding) {
+    mesh.leftArm.shoulder.rotation.set(-1.65, 0.45, -0.35);
+    mesh.leftArm.elbow.rotation.set(-1.75, 0, 0);
+    mesh.rightArm.shoulder.rotation.set(-1.65, -0.45, 0.35);
+    mesh.rightArm.elbow.rotation.set(-1.75, 0, 0);
+  }
+
+  // 4) 공격 & 레슬링 & 궁극기 전용 모션
+  if (f.atkTimer > 0) {
+    const prog = 1 - (f.atkTimer / f.atkMax); // 0 -> 1
+    const swing = Math.sin(prog * Math.PI); // 0 -> 1 -> 0
+
+    if (f.atkType === 'boxing') {
+      // 양손 번갈아 펀치 (comboSide 0: 왼손 잽, 1: 오른손 스트레이트/오버핸드)
+      if (f.comboSide === 0) {
+        mesh.bodyPivot.rotation.y = -0.45 * swing;
+        mesh.leftArm.shoulder.rotation.set(-1.55 * swing - 0.5 * (1 - swing), 0, 0);
+        mesh.leftArm.elbow.rotation.set(-0.15 * swing - 1.2 * (1 - swing), 0, 0);
+      } else {
+        mesh.bodyPivot.rotation.y = 0.58 * swing;
+        mesh.bodyPivot.rotation.x = 0.18 * swing;
+        mesh.rightArm.shoulder.rotation.set(-1.62 * swing - 0.5 * (1 - swing), 0, 0);
+        mesh.rightArm.elbow.rotation.set(-0.12 * swing - 1.2 * (1 - swing), 0, 0);
+      }
+    } else if (f.atkType === 'kick') {
+      // 양발 번갈아 하이/미들킥 (comboSide 0: 왼발 킥, 1: 오른발 라운드하우스 킥)
+      if (f.comboSide === 0) {
+        mesh.bodyPivot.rotation.z = -0.35 * swing;
+        mesh.bodyPivot.rotation.x = -0.22 * swing;
+        mesh.leftLeg.hip.rotation.set(-1.75 * swing, 0, -0.35 * swing);
+        mesh.leftLeg.knee.rotation.set(0.15 * (1 - swing), 0, 0);
+      } else {
+        mesh.bodyPivot.rotation.z = 0.38 * swing;
+        mesh.bodyPivot.rotation.x = -0.25 * swing;
+        mesh.rightLeg.hip.rotation.set(-1.85 * swing, 0, 0.35 * swing);
+        mesh.rightLeg.knee.rotation.set(0.15 * (1 - swing), 0, 0);
+      }
+    } else if (f.atkType === 'wrestling') {
+      // 실제 더블렉 테이크다운 슬램 3단계 모션!
+      if (prog < 0.35) {
+        // 1단계: 레벨 체인지(무릎 굽히고 낮게 파고들기)
+        const p1 = prog / 0.35;
+        mesh.bodyPivot.position.y = 1.02 - 0.45 * p1;
+        mesh.bodyPivot.rotation.x = 0.85 * p1;
+        mesh.leftLeg.knee.rotation.x = 0.85 * p1;
+        mesh.rightLeg.knee.rotation.x = 0.85 * p1;
+        mesh.leftArm.shoulder.rotation.x = -1.45 * p1;
+        mesh.rightArm.shoulder.rotation.x = -1.45 * p1;
+        mesh.leftArm.elbow.rotation.x = -0.4;
+        mesh.rightArm.elbow.rotation.x = -0.4;
+      } else if (prog < 0.72) {
+        // 2단계: 상대 허리/다리를 감싸 안고 번쩍 들어올리기
+        const p2 = (prog - 0.35) / 0.37;
+        mesh.root.position.y = 0.38 * Math.sin(p2 * Math.PI);
+        mesh.bodyPivot.position.y = 0.65 + 0.45 * p2;
+        mesh.bodyPivot.rotation.x = 0.65 - 0.95 * p2;
+        mesh.leftArm.shoulder.rotation.set(-1.5, 0.4, 0);
+        mesh.rightArm.shoulder.rotation.set(-1.5, -0.4, 0);
+        mesh.leftArm.elbow.rotation.x = -1.2;
+        mesh.rightArm.elbow.rotation.x = -1.2;
+      } else {
+        // 3단계: 매트 바닥으로 강하게 내리꽂기(슬램)
+        const p3 = (prog - 0.72) / 0.28;
+        mesh.bodyPivot.position.y = 1.05 - 0.48 * p3;
+        mesh.bodyPivot.rotation.x = -0.3 + 1.25 * p3;
+        mesh.leftArm.shoulder.rotation.x = -1.2;
+        mesh.rightArm.shoulder.rotation.x = -1.2;
+      }
+    } else if (f.atkType === 'bjj') {
+      // 이마나리 롤 / 플라잉 그립 다이빙 모션
+      mesh.root.position.y = Math.sin(prog * Math.PI) * 0.45;
+      mesh.root.rotation.x = prog * Math.PI * 2;
+      mesh.leftArm.shoulder.rotation.x = -1.8;
+      mesh.rightArm.shoulder.rotation.x = -1.8;
+    } else if (f.atkType === 'sig') {
+      // 궁극기(시그니처 기술)별 고유 아크로바틱 3D 모션!
+      const sid = f.sigId;
+      if (sid === 'showtime' || sid === 'flying_knee') {
+        // 케이지 반동 공중 도약 쇼타임 킥 / 플라잉 니킥
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.35;
+        mesh.bodyPivot.rotation.x = -0.45 * swing;
+        mesh.bodyPivot.rotation.z = (sid === 'showtime' ? 0.65 : 0) * swing;
+        mesh.rightLeg.hip.rotation.x = -2.1 * swing;
+        mesh.rightLeg.knee.rotation.x = (sid === 'flying_knee' ? 1.85 : 0.1) * swing;
+        mesh.leftLeg.hip.rotation.x = 0.6 * swing;
+      } else if (sid === 'wheel_kick' || sid === 'brazilian_kick') {
+        // 360도 공중 회전 스피닝 휠킥 / 브라질리언 변칙 하이킥
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.55;
+        mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
+        mesh.bodyPivot.rotation.z = 0.55 * swing;
+        mesh.rightLeg.hip.rotation.set(-2.05 * swing, 0, 0.4 * swing);
+        mesh.rightLeg.knee.rotation.x = 0.1;
+      } else if (sid === 'flying_armbar' || sid === 'imanari' || sid === 'darce') {
+        // 공중 도약 플라잉 암바 / 전방 회전 이마나리 롤
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 1.1;
+        mesh.root.rotation.x = prog * Math.PI * 2;
+        mesh.leftArm.shoulder.rotation.set(-1.7, 0.35, 0);
+        mesh.rightArm.shoulder.rotation.set(-1.7, -0.35, 0);
+        mesh.leftLeg.hip.rotation.x = -1.3 * swing;
+        mesh.rightLeg.hip.rotation.x = -1.3 * swing;
+      } else if (sid === 'suplex' || sid === 'double_leg') {
+        // 하이 앰플리튜드 백 수플렉스 아치 슬램
+        mesh.root.position.y = Math.sin(prog * Math.PI) * 0.85;
+        mesh.bodyPivot.rotation.x = -1.25 * Math.sin(prog * Math.PI * 1.3);
+        mesh.leftArm.shoulder.rotation.x = -1.8;
+        mesh.rightArm.shoulder.rotation.x = -1.8;
+      } else {
+        // 스피닝 백피스트 & 원투 오버핸드 연타 콤보
+        mesh.bodyPivot.rotation.y = prog * Math.PI * 2;
+        mesh.leftArm.shoulder.rotation.x = -1.65 * swing;
+        mesh.rightArm.shoulder.rotation.x = -1.65 * swing;
+        mesh.leftArm.elbow.rotation.x = -0.15;
+        mesh.rightArm.elbow.rotation.x = -0.15;
+      }
+    }
   }
 }
 
@@ -869,16 +1138,15 @@ function animate() {
   }
 
   const dt = rawDt * timeScale;
-  timeScale = THREE.MathUtils.lerp(timeScale, 1.0, rawDt * 6);
+  timeScale = THREE.MathUtils.lerp(timeScale, 1.0, rawDt * 5.5);
 
   if (mode === 'LOBBY') {
     const t = clock.elapsedTime * 0.35;
     camera.position.set(Math.sin(t) * 11, 4.8, Math.cos(t) * 11);
     camera.lookAt(0, 1.0, 0);
   } else if (mode === 'FIGHT') {
-    // 스태미나 & 가드 회복
     const guarding = !!keys.KeyF;
-    p1.stam = Math.min(100, p1.stam + (guarding ? 6 : 15) * dt);
+    p1.stam = Math.min(100, p1.stam + (guarding ? 6 : 16) * dt);
     p2.stam = Math.min(100, p2.stam + 14 * dt);
     if (!guarding) p1.grd = Math.min(100, p1.grd + 10 * dt);
 
@@ -886,42 +1154,54 @@ function animate() {
     if (p1.counterWindow > 0) p1.counterWindow -= dt;
     if (p1.atkTimer > 0) p1.atkTimer -= dt;
     if (p2.atkTimer > 0) p2.atkTimer -= dt;
+    if (p1.slammedTimer > 0) p1.slammedTimer -= dt;
+    if (p2.slammedTimer > 0) p2.slammedTimer -= dt;
 
-    // 록온 기준 이동 (W/S 전후진, A/D 상대 중심 서클 선회)
     const dx = p2.x - p1.x, dz = p2.z - p1.z;
     const dist = Math.hypot(dx, dz) || 1;
     const fx = dx / dist, fz = dz / dist;
     const rx = -fz, rz = fx;
-    const spd = (guarding ? 2.4 : 4.4) * dt;
+    const spd = (guarding ? 2.4 : 4.5) * dt;
 
-    if (!subGame.active) {
-      if (keys.KeyW && dist > 1.35) { p1.x += fx * spd; p1.z += fz * spd; }
-      if (keys.KeyS) { p1.x -= fx * spd; p1.z -= fz * spd; }
-      if (keys.KeyA) { p1.x -= rx * spd; p1.z -= rz * spd; }
-      if (keys.KeyD) { p1.x += rx * spd; p1.z += rz * spd; }
+    let p1Moving = false;
+    if (!subGame.active && p1.slammedTimer <= 0) {
+      if (keys.KeyW && dist > 1.35) { p1.x += fx * spd; p1.z += fz * spd; p1Moving = true; }
+      if (keys.KeyS) { p1.x -= fx * spd; p1.z -= fz * spd; p1Moving = true; }
+      if (keys.KeyA) { p1.x -= rx * spd; p1.z -= rz * spd; p1Moving = true; }
+      if (keys.KeyD) { p1.x += rx * spd; p1.z += rz * spd; p1Moving = true; }
     }
 
-    // 상대 AI 로직
+    // 상대 AI 공격 & 양손/양발 교차 사용
+    let p2Moving = false;
     p2.aiCd -= dt;
-    if (!subGame.active && p2.aiCd <= 0) {
-      if (dist > 2.3) {
+    if (!subGame.active && p2.slammedTimer <= 0 && p2.aiCd <= 0) {
+      if (dist > 2.35) {
         p2.x -= fx * 3.4 * dt;
         p2.z -= fz * 3.4 * dt;
+        p2Moving = true;
       } else {
         p2.aiCd = 0.95 + Math.random() * 0.6;
-        p2.atkTimer = 0.35;
-        // 위빙 타이밍 판정
+        p2.comboSide = p2.comboSide === 0 ? 1 : 0;
+        const rAtk = Math.random();
+        p2.atkType = rAtk < 0.55 ? 'boxing' : rAtk < 0.85 ? 'kick' : 'wrestling';
+        p2.atkMax = p2.atkType === 'wrestling' ? 0.65 : 0.36;
+        p2.atkTimer = p2.atkMax;
+
         if (p1.weaving > 0) {
           p1.counterWindow = 1.4;
           timeScale = 0.35;
           callout('SLIP! 카운터 찬스!', '#06b6d4');
         } else {
           const aiBase = Math.max(p2.stats.boxing, p2.stats.wrestling) * 0.55;
-          if (guarding && p1.grd > 15) {
+          if (guarding && p1.grd > 15 && p2.atkType !== 'wrestling') {
             p1.grd = Math.max(0, p1.grd - 18);
             p1.hp = Math.max(0, p1.hp - Math.round(aiBase * 0.25));
           } else {
             p1.hp = Math.max(0, p1.hp - Math.round(aiBase));
+            if (p2.atkType === 'wrestling') {
+              p1.slammedTimer = 0.65;
+              callout('상대의 더블렉 테이크다운!', '#e62343');
+            }
           }
           if (p1.hp <= 0) finishBattle(false);
         }
@@ -931,27 +1211,18 @@ function animate() {
     clampOctagon(p1);
     clampOctagon(p2);
 
-    // 3D 모델 위치 및 상호 록온 회전
-    p1Mesh.root.position.set(p1.x, 0, p1.z);
-    p2Mesh.root.position.set(p2.x, 0, p2.z);
     p1Mesh.root.lookAt(p2.x, 0, p2.z);
     p2Mesh.root.lookAt(p1.x, 0, p1.z);
 
-    // 위빙 & 가드 & 공격 관절 포즈
-    p1Mesh.bodyPivot.rotation.z = p1.weaving > 0 ? 0.55 : 0;
-    p1Mesh.bodyPivot.position.y = p1.weaving > 0 ? 0.78 : 1.05;
-    p1Mesh.leftArm.rotation.x = guarding ? -1.45 : (p1.atkTimer > 0 && p1.atkType === 'boxing' ? -1.6 : -0.75);
-    p1Mesh.rightArm.rotation.x = guarding ? -1.45 : (p1.atkTimer > 0 && p1.atkType === 'wrestling' ? -1.3 : -0.75);
-    p1Mesh.rightLeg.rotation.x = (p1.atkTimer > 0 && (p1.atkType === 'kick' || p1.atkType === 'sig')) ? -1.35 : 0;
-    p2Mesh.rightArm.rotation.x = p2.atkTimer > 0 ? -1.55 : -0.75;
+    animateFighterRig(p1Mesh, p1, guarding, p1Moving, clock.elapsedTime);
+    animateFighterRig(p2Mesh, p2, false, p2Moving, clock.elapsedTime + 1.3);
 
     // 록온 3인칭 어깨 너머 카메라
     const camX = p1.x - fx * 3.7 + rx * 0.55;
     const camZ = p1.z - fz * 3.7 + rz * 0.55;
-    camera.position.lerp(new THREE.Vector3(camX, 2.35, camZ), 0.16);
-    camera.lookAt(p2.x, 1.25, p2.z);
+    camera.position.lerp(new THREE.Vector3(camX, 2.35 + p1.y * 0.4, camZ), 0.16);
+    camera.lookAt(p2.x, 1.22 + p2.y * 0.4, p2.z);
 
-    // 서브미션 바늘 이동
     if (subGame.active) {
       subGame.pos += subGame.dir * 135 * dt;
       if (subGame.pos >= 98) { subGame.pos = 98; subGame.dir = -1; }
@@ -959,7 +1230,6 @@ function animate() {
       document.getElementById('sub-needle').style.left = `${subGame.pos}%`;
     }
 
-    // HUD 업데이트
     document.getElementById('hud-p1-hp').style.width = `${(p1.hp / p1.maxHp) * 100}%`;
     document.getElementById('hud-p1-hp-txt').innerText = `${p1.hp} / ${p1.maxHp}`;
     document.getElementById('hud-p1-stam').style.width = `${p1.stam}%`;
